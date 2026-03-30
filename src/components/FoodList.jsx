@@ -100,7 +100,7 @@ export default function FoodList({ initialFoods, isFiltered }) {
     console.log("foods in grid view: ", foods);
     return (
       <div className="container mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-8">All Food Menu</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8">All Food Menu</h2> {/* Responsive font size */}
         {foods.length === 0 ? (
           <p className="text-center">No food items found.</p>
         ) : (
@@ -110,14 +110,14 @@ export default function FoodList({ initialFoods, isFiltered }) {
                 <div className="relative">
                   <img src={food.image} alt={food.name} className="w-full h-48 object-cover rounded-md mb-4" />
                   {food.category && (
-                    <span className="absolute top-2 right-2 bg-black bg-opacity-60 text-white text-xs font-semibold px-2 py-1 rounded-full capitalize">
+                    <span className="absolute top-2 right-2 bg-black bg-opacity-60 text-white text-xs sm:text-sm font-semibold px-2 py-1 rounded-full capitalize"> {/* Responsive font size */}
                       {food.category}
                     </span>
                   )}
                 </div>
                 <div className="flex-grow">
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-xl font-semibold">{food.name}</h3>
+                    <h3 className="text-lg sm:text-xl font-semibold">{food.name}</h3> {/* Responsive font size */}
                   </div>
                   {food.description && <p className="text-gray-600 text-sm line-clamp-2 mb-3">{food.description}</p>}
                   <div className="flex flex-wrap gap-2 mt-auto">
@@ -141,16 +141,16 @@ export default function FoodList({ initialFoods, isFiltered }) {
 
   // VIEW 2: SPLIT VIEW (Jab filter laga ho - Recommendation Mode)
   return (
-    <div className="container mx-auto">
-      <h2 className="text-3xl font-bold text-center mb-8">Recommended For You</h2>
+    <div className="container mx-auto px-4 sm:px-0"> {/* Added responsive padding */}
+      <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8">Recommended For You</h2> {/* Responsive font size */}
       
       {foods.length === 0 ? (
         <p className="text-center">No food available matching your preferences.</p>
       ) : (
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Column: Food List */}
-          <div className="w-full lg:w-1/2 h-[800px] overflow-y-auto pr-2 space-y-3">
-            <h3 className="text-xl font-semibold mb-4 sticky top-0 bg-white py-2 z-10">Available Options ({foods.length})</h3>
+          <div className="w-full lg:w-1/2 h-[calc(100vh-200px)] lg:h-[800px] overflow-y-auto pr-2 space-y-3"> {/* Responsive height */}
+            <h3 className="text-lg sm:text-xl font-semibold mb-4 sticky top-0 bg-white py-2 z-10">Available Options ({foods.length})</h3> {/* Responsive font size */}
             {foods.map((food) => (
               <div 
                 key={food._id} 
@@ -165,10 +165,10 @@ export default function FoodList({ initialFoods, isFiltered }) {
               >
                 <img src={food.image} alt={food.name} className="w-24 h-24 object-cover rounded-md flex-shrink-0" />
                 <div className="flex-grow">
-                  <div className="flex justify-between items-start">
-                    <h4 className="font-bold text-lg">{food.name}</h4>
+                  <div className="flex justify-between items-start text-base sm:text-lg"> {/* Responsive font size */}
+                    <h4 className="font-bold">{food.name}</h4>
                   </div>
-                  <p className="text-gray-500 text-xs line-clamp-2 mt-1">{food.description}</p>
+                  <p className="text-gray-500 text-xs sm:text-sm line-clamp-2 mt-1">{food.description}</p> {/* Responsive font size */}
                   <div className="flex flex-wrap gap-1 mt-2">
                      {food.dietType?.map(d => <span key={d} className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full capitalize">{d}</span>)}
                      {food.cuisine?.map(c => <span key={c} className="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full capitalize">{c}</span>)}

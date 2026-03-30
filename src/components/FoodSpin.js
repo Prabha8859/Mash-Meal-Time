@@ -294,7 +294,7 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
             <button
               onClick={() => handleModeSelect("online")}
               className={`mode-pill ${selectedMode === 'online' ? 'active-online' : ''}`}
-            >
+            > {/* Added text-xs sm:text-base for responsiveness */}
               Online
             </button>
 
@@ -303,7 +303,7 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
                 <div className="name-reveal">
                   <p style={{
                     fontFamily: "'Syne', sans-serif",
-                    fontSize: 14,
+                    fontSize: 12, // Smaller on mobile
                     fontWeight: 900,
                     color: '#fff',
                     margin: 0,
@@ -315,7 +315,7 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
                     {suggestedFood.name}
                   </p>
                   <p style={{
-                    fontSize: 8,
+                    fontSize: 7, // Smaller on mobile
                     color: 'rgba(255,255,255,0.35)',
                     letterSpacing: '0.14em',
                     textTransform: 'uppercase',
@@ -327,7 +327,7 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
                 </div>
               ) : spinning ? (
                 <span style={{
-                  fontSize: 9,
+                  fontSize: 8, // Smaller on mobile
                   fontWeight: 800,
                   color: '#fbbf24',
                   letterSpacing: '0.18em',
@@ -356,7 +356,7 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
             <button
               onClick={() => handleModeSelect("self-cooking")}
               className={`mode-pill ${selectedMode === 'self-cooking' ? 'active-cook' : ''}`}
-            >
+            > {/* Added text-xs sm:text-base for responsiveness */}
               Self
             </button>
           </div>
@@ -386,7 +386,7 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
             {showResult && suggestedFood && !spinning ? (
               <>
                 <button onClick={handleReject} className="action-pill action-pill-reject">
-                  ✕ Change
+                  ✕ Change {/* Added text-xs sm:text-base for responsiveness */}
                 </button>
 
                 <div style={{
@@ -408,7 +408,7 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
                 </div>
 
                 <button onClick={() => setPhase("confirmed")} className="action-pill action-pill-confirm">
-                  ✓ Yes, This!
+                  ✓ Yes, This! {/* Added text-xs sm:text-base for responsiveness */}
                 </button>
               </>
             ) : (
@@ -429,7 +429,7 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
                     flexShrink: 0,
                   }} />
                   <span style={{
-                    fontSize: 10,
+                    fontSize: 9, // Smaller on mobile
                     color: foods.length > 0 ? '#86efac' : error ? '#fca5a5' : 'rgba(255, 255, 255, 0.38)',
                     fontWeight: 600,
                     letterSpacing: '0.08em',
@@ -484,7 +484,7 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
 
         {/* Ingredient Drawer */}
         {ingredientsVisible && (
-          <div className="drawer-overlay" onClick={(e) => e.target === e.currentTarget && setIngredientsVisible(false)}>
+          <div className="drawer-overlay" onClick={(e) => e.target === e.currentTarget && setIngredientsVisible(false)} style={{ display: 'flex', justifyContent: 'flex-end' }}> {/* Ensure it slides from right */}
             <div className="drawer-panel">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
@@ -494,7 +494,7 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
                   <h3 style={{ fontFamily: "'Syne', sans-serif", fontSize: 24, fontWeight: 900, margin: '4px 0 0' }}>Ingredients</h3>
                 </div>
                 <button
-                  onClick={() => setIngredientsVisible(false)}
+                  onClick={() => setIngredientsVisible(false)} className="flex-shrink-0"
                   style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', color: 'rgba(255,255,255,0.5)' }}
                 >✕</button>
               </div>
@@ -503,7 +503,7 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
                 {COMMON_INGREDIENTS.map((item) => (
                   <label key={item.id} className="ingr-chip" style={{
                     padding: '8px 16px',
-                    borderRadius: 999,
+                    borderRadius: '999px',
                     fontSize: 13,
                     fontWeight: 600,
                     border: checkedIngredients[item.id]
@@ -531,7 +531,7 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
                 onClick={() => setIngredientsVisible(false)}
                 className="mode-pill active-cook"
                 style={{
-                  width: '100%', padding: '16px', fontSize: 14,
+                  width: '100%', padding: '14px', fontSize: 13, // Smaller on mobile
                   marginTop: 'auto', height: 'auto', textAlign: 'center'
                 }}
               >

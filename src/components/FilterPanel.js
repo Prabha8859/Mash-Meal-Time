@@ -3,10 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { useSession } from "next-auth/react";
 
 const FILTER_CONFIG = [
-  { id: "dietType", label: "Diet Type", emoji: "🥗", options: ["Veg", "Non-Veg", "Vegan"] },
-  { id: "healthGoals", label: "Health Goals", emoji: "🎯", options: ["Weight Loss", "Weight Gain", "Balanced", "Muscle Gain"] },
-  { id: "allergies", label: "Allergies", emoji: "⚠️", options: ["No allergies", "Gluten", "Dairy", "Nuts", "Shellfish", "Eggs", "Onion", "Garlic"] },
-  { id: "mealTiming", label: "Meal Timing", emoji: "🕐", options: ["Breakfast", "Lunch", "Dinner", "Snacks"] },
+  { id: "dietType", label: "Diet Type", emoji: "🥗", options: ["Veg", "Non-Veg", "Vegan"], selectionType: "single" },
+  { id: "healthGoals", label: "Health Goals", emoji: "🎯", options: ["Weight Loss", "Weight Gain", "Balanced", "Muscle Gain"], selectionType: "multi" },
+  { id: "allergies", label: "Allergies", emoji: "⚠️", options: ["No allergies", "Gluten", "Dairy", "Nuts", "Shellfish", "Eggs", "Onion", "Garlic"], selectionType: "single" },
+  { id: "mealTiming", label: "Meal Timing", emoji: "🕐", options: ["Breakfast", "Lunch", "Dinner", "Snacks"], selectionType: "single" },
 ];
 
 export default function FilterPanel({ currentParams, onApply, onClose }) {
@@ -37,16 +37,14 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
     const normalizedValue = optionValue.toLowerCase().replace(/\s+/g, "-");
     setFilters(prev => {
       const currentValues = prev[categoryId] || [];
+      const categoryConfig = FILTER_CONFIG.find(config => config.id === categoryId);
       let newValues;
-      if (currentValues.includes(normalizedValue)) {
-        newValues = currentValues.filter(v => v !== normalizedValue);
+
+      if (categoryConfig.selectionType === "single") {
+        newValues = currentValues.includes(normalizedValue) ? [] : [normalizedValue];
       } else {
-        if (categoryId === 'allergies') {
-          if (normalizedValue === 'no-allergies') {
-            newValues = ['no-allergies'];
-          } else {
-            newValues = [...currentValues.filter(v => v !== 'no-allergies'), normalizedValue];
-          }
+        if (currentValues.includes(normalizedValue)) {
+          newValues = currentValues.filter(v => v !== normalizedValue);
         } else {
           newValues = [...currentValues, normalizedValue];
         }
@@ -92,7 +90,7 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
 
         .fp-panel {
           position: relative;
-          width: 100%; max-width: 340px;
+          width: 100%; max-width: 300px; /* Adjusted for slightly smaller mobile screens */
           background: #fafaf9;
           height: 100%;
           display: flex; flex-direction: column;
@@ -132,14 +130,14 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
 
           {/* Header */}
           <div style={{
-            padding: '20px 22px',
+            padding: '16px 20px', /* Slightly reduced padding */
             borderBottom: '1px solid #e5e7eb',
             background: '#fff',
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           }}>
             <div>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#f97316', letterSpacing: '0.12em', textTransform: 'uppercase', margin: 0 }}>
-                Customize
+                Customize Filters
               </p>
               <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 800, color: '#1a1a1a', margin: 0 }}>
                 Your Filters
@@ -157,7 +155,7 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
               )}
               <button
                 onClick={onClose}
-                className="fp-close"
+                className="fp-close flex-shrink-0" /* Added flex-shrink-0 */
                 style={{
                   width: 38, height: 38, borderRadius: '50%',
                   background: '#f9fafb', border: '1.5px solid #e5e7eb',
@@ -173,7 +171,7 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
           </div>
 
           {/* Scrollable filter content */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 28 }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 24 }}> {/* Reduced padding and gap */}
             {FILTER_CONFIG.map((category) => (
               <div key={category.id}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
@@ -200,7 +198,7 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
                         onClick={() => handleToggle(category.id, option)}
                         className="fp-chip"
                         style={{
-                          padding: '7px 14px',
+                          padding: '6px 12px', /* Slightly reduced padding */
                           borderRadius: 50,
                           fontSize: 13, fontWeight: 600,
                           background: isActive ? '#1a1a1a' : '#fff',
@@ -221,7 +219,7 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
 
           {/* Footer */}
           <div style={{
-            padding: '18px 22px',
+            padding: '16px 20px', /* Slightly reduced padding */
             borderTop: '1px solid #e5e7eb',
             background: '#fff',
             display: 'flex', flexDirection: 'column', gap: 10,

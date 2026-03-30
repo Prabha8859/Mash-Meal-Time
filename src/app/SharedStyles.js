@@ -44,8 +44,8 @@ export const GlobalStyles = () => (
     }
 
     .drawer-panel {
-      width: 100%; max-width: 340px;
-      height: calc(100% - 40px); margin: 20px;
+      width: 100%; max-width: 300px; /* Adjusted max-width */
+      height: 100%; margin: 0; /* Full height and no margin on small screens */
       background: rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.18);
@@ -53,6 +53,11 @@ export const GlobalStyles = () => (
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
       padding: 30px 24px; display: flex; flex-direction: column; gap: 24px;
       animation: slideInRight 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+    }
+    @media (min-width: 640px) { /* sm breakpoint */
+      .drawer-panel {
+        height: calc(100% - 40px); margin: 20px; /* Revert to original on larger screens */
+      }
     }
 
     /* UI Elements */

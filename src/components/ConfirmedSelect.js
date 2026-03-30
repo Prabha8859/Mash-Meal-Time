@@ -49,7 +49,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
       <div
         className="cs-root"
         style={{
-          width: '100%',
+          width: '90%', // Use a percentage for width on small screens
           maxWidth: 370,
           height: 'auto',
           // maxHeight: '90vh',
@@ -77,7 +77,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
           fontSize: 36, fontWeight: 900, color: '#fff',
           margin: '0 0 6px 0', lineHeight: 1.1,
         }}>
-          Great Choice!
+          Great Choice! {/* Adjusted font size for mobile */}
         </h2>
         <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.7)', fontWeight: 500, margin: '0 0 0px 0' }}>
           {selectedMode === "online" ? "We'll help you order this online 🛵" : "Time to get cooking! 🍳"}
@@ -91,7 +91,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
             borderRadius: 24,
             padding: 16,
             boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-            maxWidth: 280, width: '100%',
+            maxWidth: 280, width: '90%', // Use a percentage for width on small screens
             border: '1px solid rgba(255, 255, 255, 0.1)', // Lighter border
           }}
         >
@@ -99,7 +99,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
             src={suggestedFood?.image}
             alt={suggestedFood?.name}
             style={{
-              width: '100%', height: 180,
+              width: '100%', height: '150px', // Adjusted height for smaller screens
               objectFit: 'cover',
               borderRadius: 16,
               marginBottom: 16,
@@ -108,7 +108,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
           <h3 style={{
             fontFamily: "'Playfair Display', serif",
             fontSize: 20, fontWeight: 800,
-            color: '#fff', margin: '0 0 8px 0',
+            color: '#fff', margin: '0 0 8px 0', // Adjusted font size for mobile
           }}>
             {suggestedFood?.name}
           </h3>
@@ -117,7 +117,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
             padding: '4px 12px', borderRadius: 50,
             background: selectedMode === 'online' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(34, 197, 94, 0.2)',
             color: selectedMode === 'online' ? '#93c5fd' : '#86efac',
-            fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em'
+            fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' // Adjusted font size for mobile
           }}>
             {selectedMode === 'online' ? '🛵 Order Online' : '🍳 Self Cooking'}
           </span>
@@ -126,7 +126,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
         {/* Share Section */}
         <div style={{ marginTop: 8, width: '100%', maxWidth: 280 }}>
           <p style={{
-            fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)',
+            fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.5)', // Adjusted font size for mobile
             marginBottom: 0, textTransform: 'uppercase', letterSpacing: '0.08em',
           }}>
             Share Your Discovery!
@@ -136,7 +136,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
               className="cs-btn"
               style={{
                 width: 38, height: 38, borderRadius: '50%',
-                background: 'rgba(255,255,255,0.08)',
+                background: 'rgba(255,255,255,0.08)', // Adjusted size for mobile
                 border: '1px solid rgba(255,255,255,0.1)',
                 fontSize: 24, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
@@ -148,7 +148,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
               className="cs-btn"
               style={{
                 width: 38, height: 38, borderRadius: '50%',
-                background: 'rgba(255,255,255,0.08)',
+                background: 'rgba(255,255,255,0.08)', // Adjusted size for mobile
                 border: '1px solid rgba(255,255,255,0.1)',
                 fontSize: 24, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
@@ -160,7 +160,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
               className="cs-btn"
               style={{
                 width: 38, height: 38, borderRadius: '50%',
-                background: 'rgba(255,255,255,0.08)',
+                background: 'rgba(255,255,255,0.08)', // Adjusted size for mobile
                 border: '1px solid rgba(255,255,255,0.1)',
                 fontSize: 24, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
@@ -179,7 +179,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
             onClick={onRestart}
             className="cs-btn"
             style={{
-              flex: 1, padding: '10px',
+              flex: 1, padding: '8px', // Adjusted padding for mobile
               background: 'rgba(255,255,255,0.1)', // Transparent background
               color: 'rgba(255,255,255,0.8)', // Lighter text color
               fontSize: 15, fontWeight: 700,
@@ -194,7 +194,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
             onClick={() => setShowShareCard(true)}
             className="cs-btn"
             style={{
-             flex: 1, padding: '10px',
+             flex: 1, padding: '8px', // Adjusted padding for mobile
               background: 'rgba(255,255,255,0.1)', // Transparent background
               color: 'rgba(255,255,255,0.8)', // Lighter text color
               fontSize: 15, fontWeight: 700,

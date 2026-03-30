@@ -76,7 +76,7 @@ export default function LogoutButton() {
           ? `Auto-logout in: ${formatTime(timeLeft)}` 
           : "Session checking..."}
       </span> */}
-      <Button onClick={handleLogout} className="bg-red-600 hover:bg-red-700 text-white shadow-md transition-all rounded-lg font-semibold px-5 py-2.5">
+      <Button onClick={handleLogout} className="bg-red-600 hover:bg-red-700 text-white shadow-md transition-all rounded-lg font-semibold px-3 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-base">
         Logout
       </Button>
     </div>
