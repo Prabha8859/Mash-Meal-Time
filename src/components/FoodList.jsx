@@ -104,10 +104,10 @@ export default function FoodList({ initialFoods, isFiltered }) {
         {foods.length === 0 ? (
           <p className="text-center">No food items found.</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {foods.map((food) => (
-              <div key={food._id} className="border rounded-lg p-4 shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col bg-white">
-                <div className="relative">
+              <div key={food._id} className="glass-card p-5 transition-all duration-300 flex flex-col group hover:translate-y-[-5px]">
+                <div className="relative overflow-hidden rounded-2xl">
                   <img src={food.image} alt={food.name} className="w-full h-48 object-cover rounded-md mb-4" />
                   {food.category && (
                     <span className="absolute top-2 right-2 bg-black bg-opacity-60 text-white text-xs sm:text-sm font-semibold px-2 py-1 rounded-full capitalize"> {/* Responsive font size */}
@@ -117,18 +117,14 @@ export default function FoodList({ initialFoods, isFiltered }) {
                 </div>
                 <div className="flex-grow">
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg sm:text-xl font-semibold">{food.name}</h3> {/* Responsive font size */}
+                    <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-green-400 transition-colors">{food.name}</h3>
                   </div>
-                  {food.description && <p className="text-gray-600 text-sm line-clamp-2 mb-3">{food.description}</p>}
-                  <div className="flex flex-wrap gap-2 mt-auto">
-                    {food.cuisine?.map((c) => <span key={c} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full capitalize">cuisines: {c}</span>)}
-                    {food.dietType?.map((d) => <span key={d} className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full capitalize">diet type: {d}</span>)}
-                    {food.healthGoals?.map((h) => <span key={h} className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full capitalize">health goals: {h}</span>)}
-                    {/* {food.mealTiming?.map((t) => <span key={t} className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full capitalize">meal timing: {t}</span>)} */}
-                    {food.mood?.map((m) => <span key={m} className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full capitalize">mood: {m}</span>)}
-                    {food.weather?.map((w) => <span key={w} className="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full capitalize">weather: {w}</span>)}
-                    {food.foodStyle?.map((fs) => <span key={fs} className="bg-pink-100 text-pink-800 text-xs px-2 py-1 rounded-full capitalize">food style: {fs}</span>)}
-                    {food.foodType?.map((ft) => <span key={ft} className="bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full capitalize">food type: {ft}</span>)}
+                  {food.description && <p className="text-white/50 text-xs line-clamp-2 mb-4 font-dm leading-relaxed">{food.description}</p>}
+                  <div className="flex flex-wrap gap-1.5 mt-auto">
+                    {food.cuisine?.map((c) => <span key={c} className="bg-white/5 border border-white/10 text-white/60 text-[9px] px-2 py-1 rounded-lg capitalize"> {c}</span>)}
+                    {food.dietType?.map((d) => <span key={d} className="bg-green-500/10 border border-green-500/20 text-green-400 text-[9px] px-2 py-1 rounded-lg capitalize"> {d}</span>)}
+                    {food.healthGoals?.map((h) => <span key={h} className="bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[9px] px-2 py-1 rounded-lg capitalize"> {h}</span>)}
+                    {food.mood?.map((m) => <span key={m} className="bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[9px] px-2 py-1 rounded-lg capitalize"> {m}</span>)}
                   </div>
                 </div>
               </div>

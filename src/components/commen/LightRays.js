@@ -394,17 +394,7 @@ void main() {
     }
   }, [followMouse]);
 
-  return <div ref={containerRef} className={`style={{
-    .light-rays-container {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  pointer-events: none;
-  z-index: 3;
-  overflow: hidden;
-}
-
-    }} ${className}`.trim()} />;
+  return <div ref={containerRef} className={`light-rays-container ${className}`.trim()} />;
 };
 
 export default LightRays;

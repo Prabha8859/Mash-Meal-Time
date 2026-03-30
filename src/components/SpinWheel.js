@@ -32,6 +32,7 @@ const SpinWheel = forwardRef(({
           background: 'linear-gradient(145deg, #fbcdcd 0%, #b0c0d5 100%)',
           padding: '10px',
           boxShadow: '0 20px 50px rgba(0, 0, 0, 0.15), inset 0 2px 5px rgba(255,255,255,1)',
+          left: '20%',
         }}
       >
         {/* 1. SPINNING LAYER (Only this rotates) */}
@@ -78,7 +79,7 @@ const SpinWheel = forwardRef(({
 
               <p style={{
                 fontFamily: "'Syne', sans-serif", // Added font-syne
-                fontSize: 29,
+                fontSize: 20,
                 fontWeight: 900,
                 lineHeight: 1.05,
                 background: 'linear-gradient(135deg, #bf5e5e 30%, #fed7aa 70%, #f97316 100%)',
@@ -227,7 +228,7 @@ const SpinWheel = forwardRef(({
         className="absolute z-50"
         style={{
           top: -18, // Adjusted for smaller overall size
-          left: '50%', 
+          left: '70%', 
           transform: 'translateX(-50%)'
         }}
       >
