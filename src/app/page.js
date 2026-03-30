@@ -134,7 +134,7 @@ export default async function Home() {
       </div>
 
       <div className="relative z-10 max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* <Header /> */}
+        <Header />
         <main className="flex justify-center items-start min-h-[80vh] py-2">
           
           <FoodSpin
