@@ -7,15 +7,36 @@ import Header from "@/components/Header";
 import { cookies } from "next/headers";
 
 
+// async function getFoods(queryString = "") {
+//   const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+//   const url = queryString ? `${base}/api/foods?${queryString}` : `${base}/api/foods`;
+//   const res = await fetch(url, { cache: "no-store" });
+//   if (!res.ok) {
+//     console.error(`API call failed with status: ${res.status}`);
+//     throw new Error("Failed to fetch foods");
+//   }
+//   return res.json();
+// }
+
 async function getFoods(queryString = "") {
-  const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const url = queryString ? `${base}/api/foods?${queryString}` : `${base}/api/foods`;
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) {
-    console.error(`API call failed with status: ${res.status}`);
-    throw new Error("Failed to fetch foods");
+  try {
+    const baseUrl = process.env.NEXTAUTH_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+    
+    const url = new URL("/api/foods", baseUrl);
+    if (queryString) url.search = queryString;
+
+    const res = await fetch(url.toString(), { cache: "no-store" });
+
+    if (!res.ok) {
+      console.error("API ERROR:", res.status);
+      return [];
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("FETCH ERROR:", error);
+    return [];
   }
-  return res.json();
 }
 
 export default async function Home() {
@@ -23,7 +44,9 @@ export default async function Home() {
   if (!session || !session.user) redirect("/register");
 
   const user = session.user;
-  if (!user.questionnaire || user.questionnaire.length === 0) redirect("/preferences");
+  if (!user?.questionnaire || user?.questionnaire?.length === 0) {
+  redirect("/preferences");
+}
 
   const cookieStore = await cookies();
   const tempFilters = cookieStore.get("temp_filters");

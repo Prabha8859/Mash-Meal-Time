@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { signOut } from "next-auth/react";
 import Button from "@/components/commen/Button";
 
 export default function LogoutButton() {
@@ -16,6 +17,8 @@ export default function LogoutButton() {
     localStorage.removeItem("loginTime");
     // Redirect to the login page and refresh to clear server-side cache
     window.location.href = "/login";
+    localStorage.clear();
+    signOut({ callbackUrl: "/login" });
   };
 
   useEffect(() => {

@@ -97,8 +97,8 @@ export default function FoodList({ initialFoods, isFiltered }) {
 
   // VIEW 1: GRID VIEW (Jab koi filter nahi hai - All Foods)
   if (!isFiltered) {
+    console.log("foods in grid view: ", foods);
     return (
-      console.log("foods in grid view: ",foods),
       <div className="container mx-auto">
         <h2 className="text-3xl font-bold text-center mb-8">All Food Menu</h2>
         {foods.length === 0 ? (

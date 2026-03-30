@@ -1,5 +1,9 @@
 import connectDB from "@/lib/db";
 import Food from "@/models/Food";
+
+export const dynamic = "force-dynamic"; // 🔥 MUST
+
+
 import {
   MEAL_TIMING_OPTIONS,
   DIET_TYPE_OPTIONS,
@@ -43,6 +47,7 @@ const SYNONYM_MAP = {
 export async function POST(req) {
   try {
     await connectDB();
+    const FoodModel = (await import("@/models/Food")).default;
 
     const body = await req.json();
 
@@ -71,7 +76,7 @@ export async function POST(req) {
       }
     });
 
-    const newFood = await Food.create(body);
+  const newFood = await FoodModel.create(body);
 
     return Response.json(newFood, { status: 201 });
   } catch (error) {
@@ -86,6 +91,7 @@ export async function POST(req) {
 export async function GET(req) {
   try {
     await connectDB();
+     const FoodModel = (await import("@/models/Food")).default;
 
     const { searchParams } = new URL(req.url);
     const query = {};
@@ -152,7 +158,8 @@ export async function GET(req) {
 
     console.log("Database Query:", JSON.stringify(query, null, 2));
 
-    const foods = await Food.find(query).lean();
+     const foods = await FoodModel.find(query).lean();
+
     return Response.json(foods);
   } catch (error) {
     console.error("GET ERROR:", error);
