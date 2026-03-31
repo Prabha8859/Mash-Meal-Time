@@ -14,8 +14,8 @@ function OptionCard({ type, name, value, label, selected, onChange }) {
   return (
     <label style={{
       position:"relative",
-      display:"flex", alignItems:"center", minHeight: "clamp(40px, 5vw, 40px)",
-      gap:8, padding:"6px 12px ",
+      display:"flex", alignItems:"center", minHeight: "clamp(30px, 4vw, 35px)",
+      gap:3, padding:"  8px",
       borderRadius:"1rem", cursor:"pointer", userSelect:"none",
       transition:"transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s, border-color 0.2s, background 0.2s",
       transform: active ? "translateY(-3px)" : "translateY(0)",
@@ -70,7 +70,7 @@ function OptionCard({ type, name, value, label, selected, onChange }) {
          fontSize:"clamp(10.5px, 2.5vw, 14px)", fontWeight:700,
         textAlign:"left", lineHeight:1.3, letterSpacing:"0.02em",
         textTransform:"capitalize",
-        color: active ? "#fff" : "rgba(255,255,255,0.50)",
+        color: active ? "#fff" : "rgba(255,255,255,1)",
         transition:"color 0.2s",
       }}>
         {label.replace(/-/g," ")}
@@ -249,7 +249,7 @@ export default function Preferences() {
           backgroundImage:"url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=2000&auto=format&fit=crop')",
           backgroundSize:"cover",
           backgroundPosition:"center center",
-          opacity:0.6,
+          opacity:0.9,
           transform:"scale(1.05)",
         }} />
 
