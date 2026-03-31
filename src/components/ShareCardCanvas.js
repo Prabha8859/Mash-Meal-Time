@@ -1,9 +1,6 @@
 "use client";
 import React, { useRef, useEffect, useState } from 'react';
 
-/**
- * Reusable component that generates a personalized image using HTML5 Canvas.
- */
 export default function ShareCardCanvas({ food, user, onClose }) {
   const canvasRef = useRef(null);
   const [imgUrl, setImgUrl] = useState(null);
@@ -170,33 +167,33 @@ export default function ShareCardCanvas({ food, user, onClose }) {
   }, [food, user, refreshKey]);
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/10 backdrop-blur-sm p-10">
-      <div className=" border border-white backdrop-blur-2xl p-6 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex flex-col items-center gap-4 max-w-sm w-full animate-in zoom-in-95 duration-200">
-        <h2 className="text-slate-900 text-xl font-bold">Generated Share Card</h2>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/10 backdrop-blur-sm p-4 sm:p-6 md:p-10">
+      <div className=" border border-white backdrop-blur-2xl p-6 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex flex-col items-center gap-4 max-w-md sm:max-w-lg w-full animate-in zoom-in-95 duration-200">
+        <h2 className="text-slate-900 text-lg sm:text-xl font-bold">Generated Share Card</h2>
         
         <div className="w-full aspect-[4/5] bg-white/5 rounded-xl overflow-hidden border border-slate-200 flex items-center justify-center shadow-inner">
           {imgUrl ? (
             <img src={imgUrl} alt="Final card" className="w-full h-full object-contain" />
           ) : (
             <div className="flex flex-col items-center gap-3">
-              <div className="w-8 h-8 border-4 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
-              <p className="text-slate-400 text-sm font-medium">Creating image...</p>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 border-4 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
+              <p className="text-slate-400 text-xs sm:text-sm font-medium">Creating image...</p>
             </div>
           )}
         </div>
 
         <div className="flex gap-3 w-full">
-          <button onClick={onClose} className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-2xl font-bold transition-all">Close</button>
+          <button onClick={onClose} className="flex-1 py-2 text-xs sm:text-sm bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-2xl font-bold transition-all">Close</button>
           <button 
             onClick={() => setRefreshKey(prev => prev + 1)} 
-            className="flex-1 py-2 bg-white/80 hover:bg-white text-slate-900 rounded-2xl font-bold transition-all border border-slate-200"
+            className="flex-1 py-2 text-xs sm:text-sm bg-white/80 hover:bg-white text-slate-900 rounded-2xl font-bold transition-all border border-slate-200"
           >
             Shuffle
           </button>
           <button 
             onClick={() => { const a = document.createElement('a'); a.href = imgUrl; a.download = `MealMind-${food.name}.png`; a.click(); }}
             disabled={!imgUrl}
-            className="flex-1 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl font-bold shadow-lg shadow-orange-500/20 active:scale-95 transition-all disabled:opacity-50"
+            className="flex-1 py-2 text-xs sm:text-sm bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl font-bold shadow-lg shadow-orange-500/20 active:scale-95 transition-all disabled:opacity-50"
           >Download</button>
         </div>
         <canvas ref={canvasRef} style={{ display: 'none' }} />

@@ -99,7 +99,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
             src={suggestedFood?.image}
             alt={suggestedFood?.name}
             style={{
-              width: '100%', height: '150px', // Adjusted height for smaller screens
+              width: '100%', height: '150px', // Adjusted height for smaller screens 
               objectFit: 'cover',
               borderRadius: 16,
               marginBottom: 16,
@@ -135,10 +135,10 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
             <button
               className="cs-btn"
               style={{
-                width: 38, height: 38, borderRadius: '50%',
-                background: 'rgba(255,255,255,0.08)', // Adjusted size for mobile
+                width: 36, height: 36, borderRadius: '50%',
+                background: 'rgba(255,255,255,0.08)', // Adjusted size for mobile 
                 border: '1px solid rgba(255,255,255,0.1)',
-                fontSize: 24, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
               }}
             >
@@ -147,10 +147,10 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
             <button
               className="cs-btn"
               style={{
-                width: 38, height: 38, borderRadius: '50%',
-                background: 'rgba(255,255,255,0.08)', // Adjusted size for mobile
+                width: 36, height: 36, borderRadius: '50%',
+                background: 'rgba(255,255,255,0.08)', // Adjusted size for mobile 
                 border: '1px solid rgba(255,255,255,0.1)',
-                fontSize: 24, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
               }}
             >
@@ -159,10 +159,10 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
             <button
               className="cs-btn"
               style={{
-                width: 38, height: 38, borderRadius: '50%',
-                background: 'rgba(255,255,255,0.08)', // Adjusted size for mobile
+                width: 36, height: 36, borderRadius: '50%',
+                background: 'rgba(255,255,255,0.08)', // Adjusted size for mobile 
                 border: '1px solid rgba(255,255,255,0.1)',
-                fontSize: 24, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
               }}
             >
@@ -180,7 +180,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
             className="cs-btn"
             style={{
               flex: 1, padding: '8px', // Adjusted padding for mobile
-              background: 'rgba(255,255,255,0.1)', // Transparent background
+              background: 'rgba(255,255,255,0.1)', // Transparent background 
               color: 'rgba(255,255,255,0.8)', // Lighter text color
               fontSize: 15, fontWeight: 700,
               borderRadius: 16,
@@ -194,7 +194,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
             onClick={() => setShowShareCard(true)}
             className="cs-btn"
             style={{
-             flex: 1, padding: '8px', // Adjusted padding for mobile
+             flex: 1, padding: '8px', // Adjusted padding for mobile 
               background: 'rgba(255,255,255,0.1)', // Transparent background
               color: 'rgba(255,255,255,0.8)', // Lighter text color
               fontSize: 15, fontWeight: 700,

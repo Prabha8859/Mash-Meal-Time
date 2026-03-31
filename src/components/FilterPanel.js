@@ -90,7 +90,7 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
 
         .fp-panel {
           position: relative;
-          width: 100%; max-width: 300px; /* Adjusted for slightly smaller mobile screens */
+          width: 100%; max-width: 280px; /* Adjusted for slightly smaller mobile screens */
           background: #fafaf9;
           height: 100%;
           display: flex; flex-direction: column;
@@ -136,10 +136,10 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           }}>
             <div>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: '#f97316', letterSpacing: '0.12em', textTransform: 'uppercase', margin: 0 }}>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 'clamp(10px, 2.5vw, 11px)', fontWeight: 700, color: '#f97316', letterSpacing: '0.12em', textTransform: 'uppercase', margin: 0 }}>
                 Customize Filters
               </p>
-              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 800, color: '#1a1a1a', margin: 0 }}>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(20px, 5vw, 22px)', fontWeight: 800, color: '#1a1a1a', margin: 0 }}>
                 Your Filters
               </h3>
             </div>
@@ -176,7 +176,7 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
               <div key={category.id}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                   <span style={{ fontSize: 18 }}>{category.emoji}</span>
-                  <h4 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '0.02em' }}>
+                  <h4 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 'clamp(13px, 3vw, 14px)', fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '0.02em' }}>
                     {category.label}
                   </h4>
                   {filters[category.id]?.length > 0 && (
@@ -199,7 +199,7 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
                         className="fp-chip"
                         style={{
                           padding: '6px 12px', /* Slightly reduced padding */
-                          borderRadius: 50,
+                          borderRadius: 50, 
                           fontSize: 13, fontWeight: 600,
                           background: isActive ? '#1a1a1a' : '#fff',
                           color: isActive ? '#fff' : '#374151',
@@ -229,7 +229,7 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
               className="fp-apply"
               style={{
                 width: '100%', padding: '15px',
-                background: 'linear-gradient(135deg, #f97316, #fb923c)',
+                background: 'linear-gradient(135deg, #f97316, #fb923c)', 
                 color: '#fff', border: 'none', borderRadius: 16,
                 fontSize: 16, fontWeight: 800, cursor: 'pointer',
                 boxShadow: '0 8px 24px rgba(249,115,22,0.35)',

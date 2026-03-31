@@ -234,7 +234,7 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
 
       <GlassCard className="w-full px-[18px] pt-5 pb-[18px]" style={{ maxWidth: 'min(95vw, 520px)' }}>
 
-        {/* ── Hero ── */}
+        {/* ── Hero ── */} 
         <SpinHero
           timeLeft={timeLeft}
           onClearFilters={clearFilters}
@@ -256,7 +256,7 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
         {/* ── Spin Wheel ── */}
         <SpinWheel
           ref={wheelRef}
-          showResult={showResult}
+          showResult={showResult} 
           suggestedFood={suggestedFood}
           selectedMode={selectedMode}
           spinning={spinning}
@@ -290,7 +290,7 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
                 className="w-3 h-3 rounded-full border-2 border-orange-300/20 border-t-orange-400"
                 style={{ animation: "spin 0.8s linear infinite" }}
               />
-              <span className="text-[11px] font-[Outfit] font-semibold text-orange-200">Finding options…</span>
+              <span className="text-[10px] sm:text-[11px] font-[Outfit] font-semibold text-orange-200">Finding options…</span>
             </div>
           </div>
         )}

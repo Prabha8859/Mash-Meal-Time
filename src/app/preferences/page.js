@@ -1,245 +1,397 @@
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import MultiReuse from "@/components/Multireuse"; 
-import { preferenceQuestions } from "@/data/questions"; 
 
-export default function Preferences() {
-  const [answers, setAnswers] = useState({
-    dietType: "",
-    spiceLevel: "",
-    allergies: [],
-    // healthSuggestions: "",
-    weightGoal: "",
-  });
-  
-  // Initialize answers dynamically based on questions to avoid key mismatches
-  useEffect(() => {
-    const initialAnswers = {};
-    preferenceQuestions.forEach(q => {
-      initialAnswers[q.name] = q.type === "checkbox" ? [] : "";
-    });
-    setAnswers(initialAnswers);
-  }, []);
+// ─── Particle dot ─────────────────────────────────────────────────────────────
+function Particle({ style }) {
+  return <span style={{ position:"fixed", borderRadius:"50%", pointerEvents:"none", ...style }} />;
+}
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [showSkipMsg, setShowSkipMsg] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const router = useRouter();
-  const { data: session, update } = useSession();
-
-  const currentQuestion = preferenceQuestions[currentIndex];
-  const hasAnsweredCurrent = currentQuestion?.type === "checkbox" 
-    ? answers[currentQuestion?.name]?.length > 0 
-    : answers[currentQuestion?.name] !== "";
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-
-    if (type === "checkbox") {
-      const currentSelection = answers[name] || [];
-      
-      if (checked) {
-        if (name === "allergies" && currentSelection.length >= 5) {
-          alert("Maximum 5 selections allowed ❌");
-          return;
-        }
-        setAnswers((prev) => ({
-          ...prev,
-          [name]: [...currentSelection, value],
-        }));
-      } else {
-        setAnswers((prev) => ({
-          ...prev,
-          [name]: currentSelection.filter((item) => item !== value),
-        }));
-      }
-    } else {
-      setAnswers((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleNext = () => {
-    if (currentIndex < preferenceQuestions.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    } else {
-      handleSubmit();
-    }
-  };
-
-  const handleSkip = () => {
-    setShowSkipMsg(true);
-    setTimeout(() => setShowSkipMsg(false), 3000);
-    if (currentIndex < preferenceQuestions.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    } else {
-      handleSubmit();
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!session || !session.user) {
-      router.push("/register");
-      return;
-    }
-
-    setIsSaving(true);
-    const userId = session.user.id;
-
-    // Dynamically build payload from the current answers state
-    const answersPayload = Object.entries(answers)
-      .map(([key, value]) => ({
-        questionId: key,
-        answer: Array.isArray(value) ? value : [value]
-      }))
-      .filter((a) => a.answer.length > 0 && a.answer[0] !== "");
-
-    if (answersPayload.length === 0) {
-      alert("Please answer at least one question before finishing.");
-      setIsSaving(false);
-      return;
-    }
-
-    try {
-      const res = await fetch("/api/preferences", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId,
-          answers: answersPayload
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok)
-        throw new Error(data.message || "Failed to save preferences.");
-
-      
-      await update({
-        ...session,
-        user: {
-          ...session.user,
-          profileComplete: true,
-          questionnaire: answersPayload,
-        },
-      });
-
-      alert("Preferences Saved Successfully ✅");
-      router.push("/");
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
+// ─── Option card ──────────────────────────────────────────────────────────────
+function OptionCard({ type, name, value, label, selected, onChange }) {
+  const active = type === "checkbox" ? selected.includes(value) : selected === value;
 
   return (
-    <div className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-black font-dm selection:bg-green-500/20">
-      {/* Background with overlay */}
-      <div className="absolute inset-0 z-0">
-        <img 
-          src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=2000&auto=format&fit=crop" 
-          className="w-full h-full object-cover opacity-40 scale-105"
-          alt="bg"
-        />
-        <div className="absolute inset-0 bg-gradient-to-tr from-black via-black/60 to-orange-950/20" />
-      </div>
-
-      {/* Skip Notification Message */}
-      {showSkipMsg && (
-        <div className="absolute top-6 right-6 z-[100] animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="bg-white/10 backdrop-blur-xl border border-white/20 px-4 py-2 rounded-2xl shadow-2xl flex items-center gap-2">
-            <span className="text-orange-400">ℹ️</span>
-            <p className="text-white text-[10px] font-bold uppercase tracking-widest">Question Skipped</p>
-          </div>
-        </div>
+    <label style={{
+      position:"relative",
+      display:"flex", alignItems:"center", minHeight: "clamp(40px, 5vw, 40px)",
+      gap:8, padding:"6px 12px ",
+      borderRadius:"1rem", cursor:"pointer", userSelect:"none",
+      transition:"transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s, border-color 0.2s, background 0.2s",
+      transform: active ? "translateY(-3px)" : "translateY(0)",
+      background: active
+        ? "linear-gradient(145deg, rgba(74,222,128,0.20) 0%, rgba(22,163,74,0.11) 100%)"
+        : "linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)",
+      border: active ? "1px solid rgba(74,222,128,0.60)" : "1px solid rgba(255,255,255,0.10)",
+      boxShadow: active
+        ? "0 0 0 3px rgba(74,222,128,0.10), 0 8px 24px rgba(74,222,128,0.20)"
+        : "0 2px 10px rgba(0,0,0,0.30)",
+      backdropFilter:"blur(14px) saturate(150%)",
+      WebkitBackdropFilter:"blur(14px) saturate(150%)",
+      overflow:"hidden",
+    }}>
+      {active && (
+        <span style={{
+          position:"absolute", inset:0, pointerEvents:"none",
+          background:"linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.07) 50%, transparent 70%)",
+          backgroundSize:"200% 100%",
+          animation:"shimmer 2.2s linear infinite",
+        }} />
+      )}
+      {active && (
+        <span style={{
+          position:"absolute", top:0, left:"50%", transform:"translateX(-50%)",
+          width:"60%", height:1, borderRadius:9999,
+          background:"linear-gradient(90deg, transparent, rgba(74,222,128,0.8), transparent)",
+        }} />
       )}
 
-      <div className="glass-card relative z-10 w-full max-w-xl h-[85vh] sm:h-[75vh] mx-4 rounded-[3.5rem] flex flex-col overflow-hidden shadow-2xl border border-white/10 backdrop-blur-3xl">
-        {/* Progress Bar */}
-        <div className="h-1.5 w-full bg-white/5 flex-shrink-0">
-          <div 
-            className="h-full bg-green-500 transition-all duration-500 shadow-[0_0_15px_rgba(34,197,94,0.5)]" 
-            style={{ width: `${((currentIndex + 1) / preferenceQuestions.length) * 100}%` }}
-          />
-        </div>
+      <input type={type} name={name} value={value} checked={active}
+        onChange={onChange} style={{ display:"none" }} />
 
-        {/* Header */}
-        <div className="px-8 py-4">
-          <h1 className="font-syne text-3xl sm:text-4xl font-black text-white leading-tight tracking-tighter uppercase">
-            Personalize Your <span className="text-green-400 italic">Palate</span>
-          </h1>
-          <div className="flex items-center gap-2 mt-3">
-            <span className="text-white/40 text-[10px] font-bold uppercase tracking-[0.2em]">
-              Discovery Mode — Step {currentIndex + 1}
-            </span>
-          </div>
-        </div>
-
-        {/* Questions Body - Mapping questions based on current index */}
-        <div className="flex-1 px-10 py-2 overflow-y-auto custom-scrollbar">
-          <div className="h-full animate-in fade-in slide-in-from-right-4 duration-500">
-            {preferenceQuestions.map((q, index) => (
-              index === currentIndex && (
-                <div key={q.name} className="space-y-8">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-sm font-black border border-white/10 text-green-400 shadow-inner">
-                      {index + 1}
-                    </div>
-                    <h2 className="text-xl font-bold text-white/95 tracking-tight leading-snug">{q.title}</h2>
-                  </div>
-                  <div className="mt-4">
-                    <MultiReuse
-                      type={q.type}
-                      title=""
-                      name={q.name}
-                      options={q.options}
-                      selected={answers[q.name]}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-              )
-            ))}
-          </div>
-        </div>
-
-        {/* Footer Navigation */}
-        <div className="px-8 py-6 bg-white/[0.02] border-t border-white/5 flex items-center justify-between gap-4 flex-shrink-0">
-          <div className="flex gap-2">
-            {currentIndex > 0 && (
-              <button
-                onClick={() => setCurrentIndex(currentIndex - 1)}
-                className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 text-white flex items-center justify-center hover:bg-white/10 transition-all cursor-pointer active:scale-90"
-              >
-                ←
-              </button>
-            )}
-          <button
-            onClick={handleSkip}
-            className="px-6 py-4 rounded-2xl text-white/30 font-bold text-[10px] uppercase tracking-[0.2em] hover:text-orange-400 hover:bg-white/5 transition-all cursor-pointer"
-          >
-            Skip Question
-          </button>
-          </div>
-
-          <button
-            onClick={handleNext}
-            disabled={isSaving || (!hasAnsweredCurrent && currentIndex === preferenceQuestions.length - 1 && Object.values(answers).every(v => v === "" || v.length === 0))}
-            className={`font-syne font-black px-12 py-4.5 rounded-2xl transition-all active:scale-95 shadow-[0_10px_30px_rgba(0,0,0,0.3)] cursor-pointer uppercase tracking-wider text-xs flex items-center gap-2
-              ${hasAnsweredCurrent ? "bg-white text-black hover:bg-green-400" : "bg-white/10 text-white/40 border border-white/10"}`}
-          >
-            {isSaving ? "Finalizing..." : (currentIndex === preferenceQuestions.length - 1 ? "Finish Setup ✓" : "Next Step →")}
-          </button>
-        </div>
+      {/* Custom Checkbox UI */}
+      <div style={{
+        width: 14, height: 14, borderRadius: 6,
+        border: active ? "2px solid #4ade80" : "2px solid rgba(255,255,255,0.2)",
+        background: active ? "#4ade80" : "transparent",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        transition: "all 0.25s ease",
+        flexShrink: 0, scale: active ? "1" : "0.9"
+      }}>
+        {active && (
+          <span style={{ 
+            color: "#000", fontSize: 11, fontWeight: 900,
+            animation: "dotPop 0.2s ease-out"
+          }}>✓</span>
+        )}
       </div>
 
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-      `}</style>
+      <span style={{
+         fontSize:"clamp(10.5px, 2.5vw, 14px)", fontWeight:700,
+        textAlign:"left", lineHeight:1.3, letterSpacing:"0.02em",
+        textTransform:"capitalize",
+        color: active ? "#fff" : "rgba(255,255,255,0.50)",
+        transition:"color 0.2s",
+      }}>
+        {label.replace(/-/g," ")}
+      </span>
+    </label>
+  );
+}
+
+// ─── Section header ────────────────────────────────────────────────────────────
+function Section({ step, title, subtitle, children }) {
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+        <span style={{
+          width:14, height:14, borderRadius:8, flexShrink:0,
+          background:"linear-gradient(135deg,#16a34a,#4ade80)",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontSize:11, fontWeight:900, color:"#000",
+         
+          boxShadow:"0 3px 10px rgba(74,222,128,0.35)",
+        }}>{step}</span>
+        <div>
+          <p style={{ fontWeight:800, fontSize:"clamp(10px, 2vw, 15px)", color:"#fff", lineHeight:1.1, letterSpacing:"0.01em" }}>
+            {title}
+          </p>
+          {subtitle && (
+            <p style={{ fontSize:"clamp(8px, 2vw, 10px)", color:"rgba(255,255,255,0.30)", marginTop:2, letterSpacing:"0.03em" }}>
+              {subtitle}
+            </p>
+          )}
+        </div>
+      </div>
+      {children}
     </div>
+  );
+}
+
+// ─── Main page ─────────────────────────────────────────────────────────────────
+export default function Preferences() {
+  const router = useRouter();
+  const [diet,      setDiet]      = useState("");
+  const [allergies, setAllergies] = useState([]);
+  const [goals,     setGoals]     = useState([]);
+  const [cuisine,   setCuisine]   = useState([]);
+  const [saving,    setSaving]    = useState(false);
+
+  const toggle = (setter) => (e) => {
+    const v = e.target.value;
+    setter(p => p.includes(v) ? p.filter(x => x !== v) : [...p, v]);
+  };
+
+  const handleSave = async () => {
+    if (!diet) return;
+    setSaving(true);
+    await new Promise(r => setTimeout(r, 1200));
+    router.push("/");
+  };
+
+  const particles = [
+    { width:6,  height:6,  top:"10%", left:"6%",  background:"rgba(251,146,60,0.55)",  animation:"floatA 7s ease-in-out infinite",       filter:"blur(1px)"   },
+    { width:10, height:10, top:"75%", left:"5%",  background:"rgba(74,222,128,0.40)",  animation:"floatB 9s ease-in-out infinite 1s",    filter:"blur(1.5px)" },
+    { width:5,  height:5,  top:"22%", left:"92%", background:"rgba(251,191,36,0.55)",  animation:"floatA 6s ease-in-out infinite 0.5s",  filter:"blur(1px)"   },
+    { width:8,  height:8,  top:"82%", left:"90%", background:"rgba(248,113,113,0.40)", animation:"floatB 8s ease-in-out infinite 2s",    filter:"blur(1px)"   },
+    { width:4,  height:4,  top:"50%", left:"2%",  background:"rgba(167,243,208,0.6)",  animation:"floatC 11s ease-in-out infinite 3s",   filter:"blur(0.5px)" },
+    { width:7,  height:7,  top:"18%", left:"52%", background:"rgba(253,186,116,0.30)", animation:"floatC 13s ease-in-out infinite 1.5s", filter:"blur(2px)"   },
+    { width:3,  height:3,  top:"62%", left:"72%", background:"rgba(110,231,183,0.70)", animation:"floatA 5s ease-in-out infinite 4s",    filter:"blur(0.5px)" },
+  ];
+
+  const dietOptions = [
+    { value:"omnivore",    label:"Omnivore" },
+    { value:"vegetarian",  label:"Vegetarian" },
+    { value:"vegan",       label:"Vegan" },
+    { value:"keto",        label:"Keto" },
+    { value:"paleo",       label:"Paleo" },
+    { value:"gluten-free", label:"Gluten Free" },
+  ];
+  const allergyOptions = [
+    { value:"nuts",      label:"Nuts" },
+    { value:"dairy",     label:"Dairy" },
+    { value:"eggs",      label:"Eggs" },
+    { value:"soy",       label:"Soy" },
+    { value:"shellfish", label:"Shellfish" },
+    { value:"gluten",    label:"Gluten" },
+  ];
+  const goalOptions = [
+    { value:"weight-loss",  label:"Weight Loss" },
+    { value:"muscle-gain",  label:"Muscle Gain" },
+    { value:"energy",       label:"More Energy" },
+    { value:"heart-health", label:"Heart Health" },
+    { value:"gut-health",   label:"Gut Health" },
+    { value:"balanced",     label:"Stay Balanced" },
+  ];
+  const cuisineOptions = [
+    { value:"indian",   label:"Indian" },
+    { value:"italian",  label:"Italian" },
+    { value:"mexican",  label:"Mexican" },
+    { value:"japanese", label:"Japanese" },
+    { value:"american", label:"American" },
+    { value:"thai",     label:"Thai" },
+  ];
+
+  const canSave = diet !== "";
+
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700;9..40,900&family=Syne:wght@700;800;900&family=Noto+Color+Emoji&display=swap');
+        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+
+        @keyframes floatA {
+          0%,100%{ transform:translateY(0) translateX(0); }
+          33%    { transform:translateY(-18px) translateX(8px); }
+          66%    { transform:translateY(10px) translateX(-6px); }
+        }
+        @keyframes floatB {
+          0%,100%{ transform:translateY(0) scale(1); }
+          50%    { transform:translateY(-22px) scale(1.15); }
+        }
+        @keyframes floatC {
+          0%,100%{ transform:translateY(0) translateX(0) rotate(0deg); }
+          25%    { transform:translateY(-12px) translateX(10px) rotate(90deg); }
+          75%    { transform:translateY(15px) translateX(-8px) rotate(-60deg); }
+        }
+        @keyframes cardIn {
+          from{ opacity:0; transform:translateY(30px) scale(0.97); }
+          to  { opacity:1; transform:translateY(0) scale(1); }
+        }
+        @keyframes shimmer {
+          0%  { background-position:-200% 0; }
+          100%{ background-position:200% 0; }
+        }
+        @keyframes dotPop {
+          0%  { transform:scale(0); opacity:0; }
+          100%{ transform:scale(1); opacity:1; }
+        }
+        @keyframes spinBtn { to{ transform:rotate(360deg); } }
+        @keyframes shimmerBtn {
+          0%  { background-position:-200% 0; }
+          100%{ background-position:200% 0; }
+        }
+
+        .pref-card-in { animation: cardIn 0.65s cubic-bezier(0.22,1,0.36,1) both; }
+
+        .save-btn {
+          width:100%; padding:15px; border-radius:16px; border:none; cursor:pointer;
+          font-family:'Syne',sans-serif; font-weight:800; font-size:14px;
+          letter-spacing:0.08em; color:#000;
+          background:linear-gradient(90deg,#22c55e 0%,#4ade80 40%,#bbf7d0 55%,#4ade80 70%,#16a34a 100%);
+          background-size:200% 100%;
+          box-shadow:0 8px 28px rgba(34,197,94,0.35),0 2px 8px rgba(0,0,0,0.4);
+          transition:transform 0.2s, box-shadow 0.2s;
+          animation: shimmerBtn 2.8s linear infinite;
+        }
+        .save-btn:hover:not(:disabled){ transform:translateY(-2px); box-shadow:0 12px 36px rgba(34,197,94,0.45); }
+        .save-btn:active{ transform:scale(0.97); }
+        .save-btn:disabled{
+          opacity:0.35; cursor:not-allowed; animation:none;
+          background:#14532d; color:rgba(255,255,255,0.60);
+        }
+      `}</style>
+
+      {/* ── Root container ── */}
+      <div style={{
+        position:"relative", minHeight:"100vh", width:"100%",
+        display:"flex", alignItems:"center", justifyContent:"center",
+        // padding:"28px 16px",
+        background:"#000",
+        
+        isolation:"isolate",
+        overflowX:"hidden",
+      }}>
+
+        {/* Layer 1 – food photo via CSS backgroundImage (no <img> tag needed) */}
+        <div style={{
+          position:"fixed", inset:0, zIndex:0,
+          backgroundImage:"url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=2000&auto=format&fit=crop')",
+          backgroundSize:"cover",
+          backgroundPosition:"center center",
+          opacity:0.6,
+          transform:"scale(1.05)",
+        }} />
+
+        {/* Layer 2 – blur and soft color overlay */}
+        <div style={{
+          position:"fixed", inset:0, zIndex:1,
+          background:"rgba(0, 0, 0, 0.45)",
+          backdropFilter: "blur(0px)",
+        }} />
+
+        {/* Layer 3 – colour blooms */}
+        <div style={{
+          position:"fixed", inset:0, zIndex:2, pointerEvents:"none",
+          background:`
+            radial-gradient(ellipse 55% 48% at 0% 100%, rgba(234,88,12,0.18) 0%, transparent 65%),
+            radial-gradient(ellipse 50% 42% at 100% 0%,  rgba(22,163,74,0.16) 0%, transparent 60%)
+          `,
+        }} />
+
+        {/* Layer 4 – particles */}
+        {particles.map((p, i) => <Particle key={i} style={{ zIndex:3, ...p }} />)}
+
+        {/* ── Glass card ── */}
+        <div
+          className="pref-card-in"
+          style={{
+            position:"relative", zIndex:10, margin: "0 auto", 
+            width:"100%", maxWidth:"min(95vw, 700px)",
+            borderRadius:"2rem", padding:"20px 25px",
+            background:"rgba(255, 255, 255, 0.12)",
+            backdropFilter:"blur(5px) saturate(360%)",
+            WebkitBackdropFilter:"blur(28px) saturate(160%)",
+            border:"1px solid rgba(255,255,255,0.11)",
+            boxShadow:"0 40px 100px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.13)",
+          }}
+        >
+          {/* card top glow strip */}
+          <div style={{
+            position:"absolute", top:0, left:"50%", transform:"translateX(-50%)",
+            width:"55%", height:1, borderRadius:9999,
+            background:"linear-gradient(90deg,transparent,rgba(74,222,128,0.70),transparent)",
+          }} />
+
+          {/* ── Header ── */}
+          <div style={{ marginBottom:6 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:5, justifyContent:"between" }}>
+              <div style={{
+                width:30, height:30, borderRadius:14, fontSize:20,
+                background:"linear-gradient(135deg,#16a34a,#4ade80)",
+                display:"flex", alignItems:"center", justifyContent:"center",
+                boxShadow:"0 4px 16px rgba(74,222,128,0.35)",
+
+              }}>🍽️</div>
+              <span style={{
+                fontWeight:900, fontSize:14,
+                color:"rgba(255,255,255,0.45)", letterSpacing:"0.16em", textTransform:"uppercase", fontSize:"clamp(8px, 1.5vw, 10px)"
+              }}>MealMind</span>
+           
+
+            <h1 style={{
+              fontWeight:900, fontSize:"clamp(20px, 4vw, 25px)",
+              color:"#fff", lineHeight:1.1, letterSpacing:"-0.02em",
+            }}>
+              Your Kitchen,
+              <span style={{
+                backgroundImage:"linear-gradient(90deg,#4ade80,#bbf7d0)",
+                WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
+                backgroundClip:"text", 
+              }}>Your Rules.</span>
+            </h1>
+             </div>
+            <p style={{ fontSize:12, color:"rgba(255,255,255,0.30)", letterSpacing:"0.03em", display:"flex", justifyContent:"center" }}>
+              Personalise your experience — takes 30 seconds
+            </p>
+          </div>
+
+          {/* ── Sections ── */}
+          <div style={{ display:"flex", flexDirection:"column", gap:15 }}>
+
+            <Section step="1" title="Diet Type" subtitle="Pick one that fits your lifestyle">
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
+                {dietOptions.map(o => (
+                  <OptionCard key={o.value} type="radio" name="diet"
+                    value={o.value} label={o.label}
+                    selected={diet} onChange={e => setDiet(e.target.value)} />
+                ))}
+              </div>
+            </Section>
+
+            <Section step="2" title="Allergies & Restrictions" subtitle="Select all that apply">
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
+                {allergyOptions.map(o => (
+                  <OptionCard key={o.value} type="checkbox" name="allergies"
+                    value={o.value} label={o.label}
+                    selected={allergies} onChange={toggle(setAllergies)} />
+                ))}
+              </div>
+            </Section>
+
+            <Section step="3" title="Health Goals" subtitle="What are you working towards?">
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
+                {goalOptions.map(o => (
+                  <OptionCard key={o.value} type="checkbox" name="goals"
+                    value={o.value} label={o.label}
+                    selected={goals} onChange={toggle(setGoals)} />
+                ))}
+              </div>
+            </Section>
+
+            <Section step="4" title="Favourite Cuisines" subtitle="We'll prioritise these for you">
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
+                {cuisineOptions.map(o => (
+                  <OptionCard key={o.value} type="checkbox" name="cuisine"
+                    value={o.value} label={o.label}
+                    selected={cuisine} onChange={toggle(setCuisine)} />
+                ))}
+              </div>
+            </Section>
+
+            {/* Save */}
+            <div>
+              {!canSave && (
+                <p className="text-center text-sm sm:text-base" style={{
+                  color:"rgba(74,222,128)",
+                  marginBottom:8, letterSpacing:"0.04em",
+                }}>↑ Pick a diet type to continue</p>
+              )}
+              <button className="save-btn py-3 sm:py-4 text-sm sm:text-base" disabled={!canSave || saving} onClick={handleSave}>
+                {saving
+                  ? <span style={{
+                      display:"inline-block", width:15, height:15,
+                      border:"2.5px solid rgba(0,0,0,0.35)", borderTopColor:"#000",
+                      borderRadius:"50%", animation:"spinBtn 0.7s linear infinite",
+                    }} />
+                  : "Save My Preferences →"
+                }
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

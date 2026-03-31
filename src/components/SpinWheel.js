@@ -18,8 +18,8 @@ const SpinWheel = forwardRef(({
     : { from: '#f97316', to: '#fb923c' };
 
   return (
-    <div
-      className="relative flex items-center justify-center w-full max-w-[280px] sm:max-w-[360px] md:max-w-[320px] aspect-square flex-shrink-0 mx-auto transition-all duration-300"
+    <div 
+      className="relative flex items-center justify-center w-full max-w-[280px] sm:max-w-[360px] md:max-w-[420px] aspect-square flex-shrink-0 mx-auto transition-all duration-300"
     >
 
       {/* ====================== OUTER ROUND FRAME ====================== */}
@@ -221,8 +221,8 @@ const SpinWheel = forwardRef(({
       <div 
         className="absolute z-50"
         style={{
-          top: -25, // Adjusted for smaller overall size
-          left: '52%', 
+          top: -20, // Adjusted for smaller overall size
+          left: '50%', 
           transform: 'translateX(-50%)'
         }}
       >

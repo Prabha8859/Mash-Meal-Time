@@ -21,7 +21,7 @@ export default function IngredientDrawer({ visible, onClose, ingredients, active
 
       <div
         className="
-          w-[320px] max-w-[90vw] h-[70vh] flex flex-col gap-5
+          w-full max-w-xs sm:max-w-sm md:max-w-md h-[70vh] flex flex-col gap-5
           bg-black/30 border border-white/40
           mr-6 rounded-[2.5rem]
           px-6 py-8 shadow-2xl
@@ -34,7 +34,7 @@ export default function IngredientDrawer({ visible, onClose, ingredients, active
             <p className="text-[10px] font-extrabold text-green-400 tracking-[0.2em] uppercase font-[Outfit]">
               What's in your kitchen?
             </p>
-            <h3 className="font-[Playfair_Display] text-2xl font-black text-white mt-1 leading-tight">
+            <h3 className="font-[Playfair_Display] text-xl sm:text-2xl font-black text-white mt-1 leading-tight">
               {activeMealTiming ? activeMealTiming.charAt(0).toUpperCase() + activeMealTiming.slice(1) : 'Meal'} Ingredients
             </h3>
           </div>
@@ -56,8 +56,8 @@ export default function IngredientDrawer({ visible, onClose, ingredients, active
             return (
               <label
                 key={item.id}
-                className={`
-                  p-2 rounded-xl text-[13px] font-bold font-[Outfit]
+                className={` 
+                  p-2 rounded-xl text-[12px] sm:text-[13px] font-bold font-[Outfit]
                   cursor-pointer select-none flex flex-col items-center justify-center text-center gap-2
                   border transition-all duration-[220ms] ease-[cubic-bezier(0.34,1.56,0.64,1)]
                   hover:scale-[1.04]
