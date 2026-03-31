@@ -29,7 +29,11 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
 
   const wheelRef            = useRef(null);
   const abortControllerRef  = useRef(null);
-  const COMMON_INGREDIENTS  = MEAL_SPECIFIC_INGREDIENTS[mealTiming] || [];
+
+  // Dynamically derive the meal timing from the current filters
+  const activeParams        = new URLSearchParams(currentQueryString);
+  const activeMealTiming    = activeParams.get("mealTiming")?.toLowerCase() || mealTiming?.toLowerCase();
+  const COMMON_INGREDIENTS  = MEAL_SPECIFIC_INGREDIENTS[activeMealTiming] || [];
   const remainingCount      = Math.max(0, foods.length - rejectedIds.size);
 
   /* ── helpers ── */
@@ -80,6 +84,11 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
     return () => clearInterval(interval);
   }, [filterExpiry, baseParams]);
 
+  // Reset checked ingredients if the meal timing changes via filters
+  useEffect(() => {
+    setCheckedIngredients({});
+  }, [activeMealTiming]);
+
   /* ── API ── */
   const fetchFoodsForMode = async (mode, ingredients = []) => {
     if (abortControllerRef.current) abortControllerRef.current.abort();
@@ -121,8 +130,16 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
   };
 
   const toggleIngredient = (id) => {
-    setCheckedIngredients((prev) => ({ ...prev, [id]: !prev[id] }));
+    setCheckedIngredients((prev) => (prev[id] ? {} : { [id]: true }));
     setFoods([]); resetSpinState();
+  };
+
+  const handleIngredientsApply = async () => {
+    setIngredientsVisible(false);
+    const selectedIngredients = Object.keys(checkedIngredients).filter((k) => checkedIngredients[k]);
+    if (selectedIngredients.length > 0) {
+      await fetchFoodsForMode(selectedMode, selectedIngredients);
+    }
   };
 
   const handleFilterApply = (newParams, expiryTime) => {
@@ -215,7 +232,7 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
         @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
       `}</style>
 
-      <GlassCard className="w-full px-[18px] pt-5 pb-[18px]" style={{ maxWidth: 480 }}>
+      <GlassCard className="w-full px-[18px] pt-5 pb-[18px]" style={{ maxWidth: 'min(95vw, 520px)' }}>
 
         {/* ── Hero ── */}
         <SpinHero
@@ -294,8 +311,10 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
         visible={ingredientsVisible}
         onClose={() => setIngredientsVisible(false)}
         ingredients={COMMON_INGREDIENTS}
+        activeMealTiming={activeMealTiming}
         checkedIngredients={checkedIngredients}
         onToggle={toggleIngredient}
+        onApply={handleIngredientsApply}
       />
     </>
   );

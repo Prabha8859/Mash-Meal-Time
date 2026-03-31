@@ -21,7 +21,7 @@ export default function ModeRow({ selectedMode, showResult, suggestedFood, spinn
   );
 
   return (
-    <div className="w-full flex items-center gap-2 mb-3">
+    <div className="w-full flex items-center gap-2 mb-6">
       {modeBtn(
         "online", "🛵 Online",
         "bg-blue-400/20 border-blue-400/55 text-blue-200 shadow-[0_4px_20px_rgba(96,165,250,0.25)] -translate-y-px"

@@ -19,20 +19,15 @@ const SpinWheel = forwardRef(({
 
   return (
     <div
-      className="relative flex items-center justify-center w-full max-w-[330px] aspect-square flex-shrink-0"
-      // Removed fixed width/height, added Tailwind classes for responsiveness
+      className="relative flex items-center justify-center w-full max-w-[280px] sm:max-w-[360px] md:max-w-[320px] aspect-square flex-shrink-0 mx-auto transition-all duration-300"
     >
 
       {/* ====================== OUTER ROUND FRAME ====================== */}
       <div 
-        className="relative rounded-full w-full h-full" // Made width/height 100%
+        className="relative rounded-full w-full h-full flex items-center justify-center"
         style={{
-          width: 300,
-          height: 300,
           background: 'linear-gradient(145deg, #fbcdcd 0%, #b0c0d5 100%)',
-          padding: '10px',
           boxShadow: '0 20px 50px rgba(0, 0, 0, 0.15), inset 0 2px 5px rgba(255,255,255,1)',
-          left: '20%',
         }}
       >
         {/* 1. SPINNING LAYER (Only this rotates) */}
@@ -79,7 +74,7 @@ const SpinWheel = forwardRef(({
 
               <p style={{
                 fontFamily: "'Syne', sans-serif", // Added font-syne
-                fontSize: 20,
+                fontSize: 'clamp(18px, 5vw, 26px)',
                 fontWeight: 900,
                 lineHeight: 1.05,
                 background: 'linear-gradient(135deg, #bf5e5e 30%, #fed7aa 70%, #f97316 100%)',
@@ -91,8 +86,7 @@ const SpinWheel = forwardRef(({
               </p>
               {/* Removed redundant color property */}
               <p style={{
-                fontSize: 12.5,
-                color: 'color: #000',
+                fontSize: 'clamp(10px, 2.5vw, 13px)',
                 color: '#000',
                 margin: 0,
               }}>
@@ -112,10 +106,10 @@ const SpinWheel = forwardRef(({
               userSelect: 'none',
             }}>
               <p style={{
-                fontSize: 11,
+                fontSize: 'clamp(9px, 2vw, 12px)',
                 fontWeight: 700,
                 letterSpacing: '0.4em',
-                color: selectedMode === 'online' ? '#ff1212' : '#ff1212 ',
+                color: '#ff1212',
                 textTransform: 'uppercase',
               }}>
                 {selectedMode === 'online' ? 'ORDER ONLINE' : 'SELF COOKING'}
@@ -129,7 +123,7 @@ const SpinWheel = forwardRef(({
                   color: '#fff',
                   fontFamily: "'Syne', sans-serif",
                   fontWeight: 900,
-                  fontSize: 10.5,
+                  fontSize: 'clamp(10px, 2vw, 12px)',
                   letterSpacing: '0.15em',
                   padding: '12px 20px', // Adjusted padding
                   borderRadius: '12px', // Rectangular with slight round
@@ -146,7 +140,7 @@ const SpinWheel = forwardRef(({
                 {loading ? '•••' : "SPIN NOW"}
               </button>
 
-              <p style={{ fontSize: 11, color: 'rgb(247 10 10 / 81%)', margin: 0 }}>
+              <p style={{ fontSize: 'clamp(9px, 2vw, 11px)', color: 'rgb(247 10 10 / 81%)', margin: 0 }}>
                 tap to spin the wheel
               </p>
             </div>
@@ -154,10 +148,10 @@ const SpinWheel = forwardRef(({
 
           {/* Spinning State */}
           {spinning && (
-            <div style={{ position: 'relative', width: 110, height: 110 }}>
+            <div className="relative w-[35%] aspect-square">
               <div style={{
                 position: 'absolute',
-                inset: 0,
+                inset: '-10%',
                 border: '5px solid rgba(255,255,255,0.2)',
                 borderTopColor: '#f97316',
                 borderRightColor: '#fbbf24',
@@ -166,7 +160,7 @@ const SpinWheel = forwardRef(({
               }} />
               <div style={{
                 position: 'absolute',
-                inset: 26,
+                inset: '15%',
                 border: '3.5px solid rgba(251,191,36,0.3)',
                 borderBottomColor: '#fcd34d',
                 borderRadius: '50%',
@@ -191,8 +185,8 @@ const SpinWheel = forwardRef(({
             <div
               className="relative flex flex-col items-center justify-center bg-white shadow-[0_15px_40px_rgba(0,0,0,0.2)]  overflow-hidden"
               style={{ 
-                width: 'calc(100% - 20px)', // Make it fill most of the parent
-                height: 'calc(100% - 20px)', // Make it fill most of the parent
+                width: '100%', // Make it fill most of the parent
+                height: '100% ', // Make it fill most of the parent
                 borderRadius: '50%',
                 animation: 'pop-in 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards' 
               }}
@@ -227,17 +221,17 @@ const SpinWheel = forwardRef(({
       <div 
         className="absolute z-50"
         style={{
-          top: -18, // Adjusted for smaller overall size
-          left: '70%', 
+          top: -25, // Adjusted for smaller overall size
+          left: '52%', 
           transform: 'translateX(-50%)'
         }}
       >
         <div style={{
           width: 0,
           height: 0,
-          borderLeft: '15px solid transparent',
-          borderRight: '15px solid transparent',
-          borderBottom: '28px solid #f97316', // Adjusted size
+          borderLeft: '10px solid transparent',
+          borderRight: '10px solid transparent',
+          borderBottom: '20px solid #f97316', // Adjusted size
           filter: 'drop-shadow(0 8px 18px rgba(249,115,22,0.95))',
         }} />
         {/* Pointer shine */}

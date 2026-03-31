@@ -8,7 +8,7 @@ export default function SpinHero({ timeLeft, onClearFilters, onOpenFilters }) {
         .filter-spin:hover { transform: scale(1.1) rotate(18deg); }
       `}</style>
 
-      <div className="flex items-start justify-between gap-3 mb-4">
+      <div className="flex items-start justify-between gap-3 ">
         {/* Left: title */}
         <div className="flex flex-col gap-1">
           {/* eyebrow */}

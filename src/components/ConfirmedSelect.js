@@ -50,7 +50,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
         className="cs-root"
         style={{
           width: '90%', // Use a percentage for width on small screens
-          maxWidth: 370,
+          maxWidth: 'min(90vw, 450px)',
           height: 'auto',
           // maxHeight: '90vh',
           display: 'flex',
@@ -74,7 +74,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
         {/* Heading */}
         <h2 style={{
           // fontFamily: "'Playfair Display', serif",
-          fontSize: 36, fontWeight: 900, color: '#fff',
+          fontSize: 'clamp(28px, 8vw, 42px)', fontWeight: 900, color: '#fff',
           margin: '0 0 6px 0', lineHeight: 1.1,
         }}>
           Great Choice! {/* Adjusted font size for mobile */}
