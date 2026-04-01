@@ -19,15 +19,24 @@ const SpinWheel = forwardRef(({
 
   return (
     <div 
-      className="relative flex items-center justify-center w-full max-w-[280px] sm:max-w-[360px] md:max-w-[420px] aspect-square flex-shrink-0 mx-auto transition-all duration-300"
+      className="relative flex items-center justify-center w-full max-w-[280px] sm:max-w-[360px] md:max-w-[395px] aspect-square flex-shrink-0 mx-auto transition-all duration-300"
     >
+      {/* Dynamic Background Aura Glow */}
+      {selectedMode && !showResult && (
+        <div 
+          className="absolute inset-0 rounded-full blur-[80px] opacity-30 transition-all duration-1000 animate-pulse"
+          style={{
+            background: `radial-gradient(circle, ${modeColor.from}, transparent 70%)`
+          }}
+        />
+      )}
 
       {/* ====================== OUTER ROUND FRAME ====================== */}
       <div 
         className="relative rounded-full w-full h-full flex items-center justify-center"
         style={{
-          background: 'linear-gradient(145deg, #fbcdcd 0%, #b0c0d5 100%)',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.15), inset 0 2px 5px rgba(255,255,255,1)',
+          background: 'linear-gradient(145deg, rgba(255,255,255,0.4) 0%, rgba(200,200,200,0.2) 100%)',
+          boxShadow: '0 15px 35px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(255,255,255,0.8)',
         }}
       >
         {/* 1. SPINNING LAYER (Only this rotates) */}
@@ -77,10 +86,10 @@ const SpinWheel = forwardRef(({
                 fontSize: 'clamp(18px, 5vw, 26px)',
                 fontWeight: 900,
                 lineHeight: 1.05,
-                background: 'linear-gradient(135deg, #bf5e5e 30%, #fed7aa 70%, #f97316 100%)',
+                background: 'linear-gradient(135deg, #fff 30%, #f97316 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
-                margin: 0,
+                margin: '0 0 5px 0',
               }}>
                 Create your<br />Bowl!
               </p>
@@ -183,11 +192,12 @@ const SpinWheel = forwardRef(({
           {/* Result State */}
           {showResult && suggestedFood && (
             <div
-              className="relative flex flex-col items-center justify-center bg-white shadow-[0_15px_40px_rgba(0,0,0,0.2)]  overflow-hidden"
+              className="relative flex flex-col items-center justify-center bg-white shadow-[0_25px_60px_rgba(0,0,0,0.4)] overflow-hidden"
               style={{ 
                 width: '100%', // Make it fill most of the parent
                 height: '100% ', // Make it fill most of the parent
                 borderRadius: '50%',
+                border: '3px solid white',
                 animation: 'pop-in 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards' 
               }}
             >

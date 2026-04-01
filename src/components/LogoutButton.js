@@ -2,12 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Button from "@/components/commen/Button";
+import Link from "next/link";
 
 export default function LogoutButton() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [timeLeft, setTimeLeft] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = () => {
     // Clear the user cookie by setting its expiry date to the past
@@ -70,16 +73,63 @@ export default function LogoutButton() {
   };
 
   return (
-    <div className="flex items-center gap-4">
-      {/* <span className="text-sm font-mono text-red-700 bg-red-100 px-2 py-1 rounded-md">
-        {timeLeft !== null && timeLeft > 0 
-          ? `Auto-logout in: ${formatTime(timeLeft)}` 
-          : "Session checking..."}
-      </span> */}
-      <Button onClick={handleLogout} className="bg-red-600 hover:bg-red-700 text-white shadow-md transition-all rounded-lg font-semibold px-3 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-base">
-        Logout
-      </Button>
+    <div className="relative">
+      {/* User Avatar Circle */}
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="relative group p-0.5 rounded-full border-2 border-white/10 hover:border-white/40 transition-all active:scale-90"
+      >
+        <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full overflow-hidden bg-neutral-900 border border-white/10 shadow-2xl">
+          {session?.user?.image ? (
+            <img 
+              src={session.user.image} 
+              alt="User" 
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-white font-bold bg-gradient-to-br from-neutral-700 to-neutral-900">
+              {session?.user?.name?.charAt(0) || "U"}
+            </div>
+          )}
+        </div>
+        
+        {/* Status indicator */}
+        <span className="absolute bottom-1 right-1 w-3 h-3 bg-green-500 border-2 border-black rounded-full"></span>
+      </button>
+
+      {/* Dropdown Menu */}
+      {isOpen && (
+        <>
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setIsOpen(false)}
+          ></div>
+          <div className="absolute right-0 mt-3 w-[75vw] max-w-[240px] bg-white/75 backdrop-blur-3xl border border-white/60 rounded-[1.5rem] sm:rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] z-50 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200 origin-top-right">
+            <div className="px-5 py-4 border-b border-black/5 bg-white/30">
+              <p className="text-[8px] sm:text-[9px] text-slate-500 font-black uppercase tracking-[0.1em] mb-0.5">Account</p>
+              <p className="text-xs sm:text-sm text-slate-900 font-black truncate">{session?.user?.email}</p>
+            </div>
+            
+            <div className="p-2">
+              <Link href="/profile" className="flex items-center gap-3 px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 hover:bg-white/60 rounded-xl transition-all">
+                <span className="text-base sm:text-lg">👤</span> Profile
+              </Link>
+              <Link href="/preferences" className="flex items-center gap-3 px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 hover:bg-white/60 rounded-xl transition-all">
+                <span className="text-base sm:text-lg">⚙️</span> Settings
+              </Link>
+            </div>
+
+            <div className="p-2 border-t border-black/5">
+              <button 
+                onClick={handleLogout}
+                className="flex items-center gap-3 w-full px-4 py-2.5 text-xs sm:text-sm text-red-600 hover:text-red-700 hover:bg-red-50/50 rounded-xl transition-all font-black text-left"
+              >
+                <span className="text-lg">🚪</span> Logout
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
-    
   );
 }

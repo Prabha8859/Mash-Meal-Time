@@ -4,12 +4,12 @@ export default function GlassCard({ children, className = "", style = {} }) {
     <div
       className={`
         relative overflow-hidden
-        // bg-white/[0.13] backdrop-blur-sm
-        border border-white/30
-        rounded-[28px]
-        // shadow-[0_20px_60px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.45)]
+        bg-white/10 backdrop-blur-xl
+        border border-white/40
+        rounded-[32px]
+        shadow-[0_20px_50px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)]
         before:absolute before:inset-0 before:rounded-[28px] before:pointer-events-none
-        before:bg-gradient-to-br before:from-white/20 before:via-white/5 before:to-white/10
+        before:bg-gradient-to-br before:from-white/10 before:via-transparent before:to-white/5
         ${className}
       `}
       style={style}

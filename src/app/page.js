@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { getAutoMealTiming, getAutoWeatherCondition } from "@/lib/utils";
 import FoodSpin from "@/components/FoodSpin";
-import Header from "@/components/Header";
+import LogoutButton from "@/components/LogoutButton";
 import { cookies } from "next/headers";
 
 async function getFoods(queryString = "") {
@@ -78,17 +78,22 @@ export default async function Home() {
   const mealTimingForComponent = finalParams.get("mealTiming")?.split(",")[0] || "Lunch";
 
   return (
-    <div className="min-h-screen relative bg-black selection:bg-orange-500 selection:text-white overflow-hidden">
+    <div className="min-h-screen relative bg-black selection:bg-orange-500 selection:text-white overflow-hidden group">
 
       <div className="fixed inset-0 z-0">
-        {/* Base food photo */}
-        <img
-        src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=2070&auto=format&fit=crop" 
-          alt=""
-          className="w-full h-full object-cover scale-105"
-          style={{ filter: "saturate(1.15) brightness(0.55)" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-black/10 via-orange-950/10 to-black/10" />
+        {/* Cinematic Background Video */}
+        <video
+          autoPlay={true}
+          muted={true}
+          loop={true}
+          playsInline={true}
+          preload="auto"
+          src="/assets/img/video-bg-03.mp4"
+          className="w-full h-full object-cover scale-105 transition-all duration-700 ease-in-out"
+          style={{ filter: "brightness(0.4) saturate(0.9)" }}
+        >
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-black/20 group-hover:opacity-40 transition-opacity duration-1000" />
         <div
           className="absolute inset-0"
           style={{
@@ -111,16 +116,37 @@ export default async function Home() {
       </div>
 
       {/* ── Content ── */}
-      <div className="relative z-10 max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Header />
-        <main className="flex justify-center items-start min-h-[80vh] py-2">
-          <FoodSpin
-            initialFoods={foods}
-            isFiltered={isFiltered}
-            mealTiming={mealTimingForComponent}
-            baseParams={queryString}
-          />
-        </main>
+      <div className="relative z-10 w-full mx-auto px-2 sm:px-6 lg:px-8 max-w-7xl">
+        <header className="flex items-start justify-between py-1 sm:py-2">
+          {/* Left: Logo */}
+          <div className="flex-1 flex items-center gap-2 z-20 pt-1 sm:pt-2">
+            <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/20 border border-white/20 flex-shrink-0">
+              <span className="text-xl sm:text-2xl">🍽️</span>
+            </div>
+            <span className="font-black text-sm sm:text-xl tracking-tighter text-white hidden md:block">
+              Meal<span className="text-green-400">Mind</span>
+            </span>
+          </div>
+
+          {/* Center: FoodSpin */}
+          <div className="flex-[4] flex justify-center z-10 min-w-0 food-spin-wrap transition-transform duration-500 hover:scale-[1.02] py-2 sm:py-2">
+            <FoodSpin
+              initialFoods={foods}
+              isFiltered={isFiltered}
+              mealTiming={mealTimingForComponent}
+              baseParams={queryString}
+            />
+          </div>
+
+          {/* Right: User Menu */}
+          <div className="flex-1 flex justify-end z-20 pt-1 sm:pt-2">
+            <LogoutButton />
+          </div>
+        </header>
+
+        {/* <main className="flex flex-col items-center justify-center pb-12">
+           Main interaction happens within FoodSpin centered above
+        </main> */}
       </div>
     </div>
   );

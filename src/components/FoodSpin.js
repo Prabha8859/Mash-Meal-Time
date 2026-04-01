@@ -228,11 +228,27 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
     <>
       {/* Google Fonts */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+        // @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
         @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+        @keyframes borderGlow {
+          0% { border-color: rgba(255,255,255,0.2); box-shadow: 0 0 0px rgba(255,255,255,0); }
+          50% { border-color: rgba(255,255,255,0.6); box-shadow: 0 0 40px rgba(255,255,255,0.15); }
+          100% { border-color: rgba(255,255,255,0.2); box-shadow: 0 0 0px rgba(255,255,255,0); }
+        }
+        .attractive-card:hover {
+          animation: borderGlow 7s infinite ease-in-out;
+          background: rgba(255, 255, 255, 0.20) !important;
+        }
       `}</style>
 
-      <GlassCard className="w-full px-[18px] pt-5 pb-[18px]" style={{ maxWidth: 'min(95vw, 520px)' }}>
+      <GlassCard
+        className="w-full px-5 py-6 transition-all duration-700 border-white/20 attractive-card shadow-[0_40px_120px_-20px_rgba(0,0,0,0.8)]"
+        style={{ 
+          maxWidth: 'min(95vw, 480px)',
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(40px) saturate(150%)',
+        }}
+      >
 
         {/* ── Hero ── */} 
         <SpinHero

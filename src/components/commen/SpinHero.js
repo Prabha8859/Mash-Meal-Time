@@ -10,7 +10,7 @@ export default function SpinHero({ timeLeft, onClearFilters, onOpenFilters }) {
 
       <div className="flex items-start justify-between gap-3 ">
         {/* Left: title */}
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col">
           {/* eyebrow */}
           <span className="text-[9px] font-[Outfit] font-bold tracking-[0.22em] uppercase text-white/40">
             🍽 Food Engine
@@ -34,7 +34,7 @@ export default function SpinHero({ timeLeft, onClearFilters, onOpenFilters }) {
             </span>
           </h2>
 
-          <p className="text-[12px] font-[Outfit] text-white/60 font-normal mt-0.5 leading-snug max-w-[200px]">
+          <p className="text-[10px] font-[Outfit] text-white/60 font-normal mt-0.5 leading-snug max-w-[200px]">
             Spin the wheel — no more indecision!
           </p>
         </div>

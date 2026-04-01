@@ -242,16 +242,30 @@ export default function Preferences() {
         isolation:"isolate",
         overflowX:"hidden",
       }}>
-
-        {/* Layer 1 – food photo via CSS backgroundImage (no <img> tag needed) */}
-        <div style={{
+        {/* <div style={{
           position:"fixed", inset:0, zIndex:0,
           backgroundImage:"url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=2000&auto=format&fit=crop')",
           backgroundSize:"cover",
           backgroundPosition:"center center",
           opacity:0.9,
           transform:"scale(1.05)",
-        }} />
+        }} /> */}
+
+        {/* Layer 1 – Cinematic Background Video */}
+        <video
+          autoPlay={true}
+          muted={true}
+          loop={true}
+          playsInline={true}
+          preload="auto"
+          src="/assets/img/video-bg-04.mp4"
+          style={{
+            position: "fixed", inset: 0, zIndex: 0,
+            width: "100%", height: "100%", objectFit: "cover",
+            opacity: 0.8, transform: "scale(1.05)",
+            filter: "brightness(0.8) saturate(1.2)"
+          }}
+        />
 
         {/* Layer 2 – blur and soft color overlay */}
         <div style={{
@@ -278,12 +292,12 @@ export default function Preferences() {
           style={{
             position:"relative", zIndex:10, margin: "0 auto", 
             width:"100%", maxWidth:"min(95vw, 700px)",
-            borderRadius:"2rem", padding:"20px 25px",
-            background:"rgba(255, 255, 255, 0.12)",
+            borderRadius:"3rem", padding:"clamp(20px, 5vw, 40px)",
+            background:"rgba(255, 255, 255, 0.08)",
             backdropFilter:"blur(5px) saturate(360%)",
             WebkitBackdropFilter:"blur(28px) saturate(160%)",
-            border:"1px solid rgba(255,255,255,0.11)",
-            boxShadow:"0 40px 100px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.13)",
+            border:"1px solid rgba(255,255,255,0.15)",
+            boxShadow:"0 50px 100px -20px rgba(0,0,0,0.7), inset 0 1px 1px rgba(255,255,255,0.1)",
           }}
         >
           {/* card top glow strip */}
@@ -327,10 +341,10 @@ export default function Preferences() {
           </div>
 
           {/* ── Sections ── */}
-          <div style={{ display:"flex", flexDirection:"column", gap:15 }}>
+          <div style={{ display:"flex", flexDirection:"column", gap:24 }}>
 
             <Section step="1" title="Diet Type" subtitle="Pick one that fits your lifestyle">
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 gap-3">
                 {dietOptions.map(o => (
                   <OptionCard key={o.value} type="radio" name="diet"
                     value={o.value} label={o.label}
