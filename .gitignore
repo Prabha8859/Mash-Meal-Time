@@ -19,3 +19,4 @@ yarn-error.log*
 Thumbs.db
 .vercel
 .env*.local
+public/assets/img/video-bg-03.mp4
