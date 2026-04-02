@@ -1,5 +1,5 @@
 "use client";
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useState, useEffect } from 'react';
 
 const SpinWheel = forwardRef(({ 
   showResult, 
@@ -10,6 +10,27 @@ const SpinWheel = forwardRef(({
   loading, 
   disabled 
 }, ref) => {
+  const [quickTip, setQuickTip] = useState("");
+
+  const tips = [
+    "💡 Pro Tip: Drinking water before meals helps improve digestion.",
+    "💡 Pro Tip: Using smaller plates can help with portion control.",
+    "💡 Pro Tip: Eating slowly gives your brain time to realize you're full.",
+    "💡 Pro Tip: Adding protein to your breakfast reduces cravings all day.",
+    "💡 Pro Tip: Spices like ginger and cinnamon can naturally boost metabolism.",
+    "💡 Pro Tip: Fiber-rich foods keep your gut healthy and you feeling full.",
+    "💡 Pro Tip: Planning meals ahead prevents impulsive, unhealthy choices."
+  ];
+
+
+  useEffect(() => {
+    // Set a random tip on mount
+    setQuickTip(tips[Math.floor(Math.random() * tips.length)]);
+  }, []);
+
+  // Default image to show when not spinning and no result is yet available
+  const DEFAULT_FOOD_IMAGE = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800";
+  const displayImage = showResult && suggestedFood ? suggestedFood.image : DEFAULT_FOOD_IMAGE;
 
   const modeColor = selectedMode === 'online'
     ? { from: '#3b82f6', to: '#6366f1' }
@@ -18,7 +39,20 @@ const SpinWheel = forwardRef(({
     : { from: '#f97316', to: '#fb923c' };
 
   return (
-    <div 
+    <div className="flex flex-col items-center w-full">
+      {/* Local Styles for Button Pulse */}
+      <style>{`
+        @keyframes whiteGlowPulse {
+          0% { box-shadow: 0 0 15px ${modeColor.from}66; transform: scale(1); }
+          50% { box-shadow: 0 0 25px 5px rgba(255, 255, 255, 0.4), 0 0 35px ${modeColor.from}; transform: scale(1.05); }
+          100% { box-shadow: 0 0 15px ${modeColor.from}66; transform: scale(1); }
+        }
+        .spin-button-ready {
+          animation: whiteGlowPulse 2s infinite ease-in-out;
+        }
+      `}</style>
+
+      <div 
       className="relative flex items-center justify-center w-full max-w-[280px] sm:max-w-[360px] md:max-w-[395px] aspect-square flex-shrink-0 mx-auto transition-all duration-300"
     >
       {/* Dynamic Background Aura Glow */}
@@ -56,107 +90,8 @@ const SpinWheel = forwardRef(({
 
         {/* 2. STATIC CONTENT LAYER (Fixed position, not round) */}
         <div className="relative w-full h-full z-10 flex items-center justify-center">
-
-          {/* No Mode Selected */}
-          {!selectedMode && !showResult && (
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 18,
-              textAlign: 'center',
-              padding: '0 30px',
-              userSelect: 'none',
-            }}>
-              <div className="flex items-center gap-2 sm:gap-3 md:gap-4"> {/* Responsive gap */}
-                <div style={{ width: 40, height: 2, background: 'rgba(255,255,255,0.35)' }} />
-                <div style={{ 
-                  width: 11, 
-                  height: 11, 
-                  borderRadius: '50%', 
-                  background: '#f97316', 
-                  boxShadow: '0 0 20px #f97316' 
-                }} />
-                <div style={{ width: 40, height: 2, background: 'rgba(255,255,255,0.35)' }} />
-              </div>
-
-              <p style={{
-                fontFamily: "'Syne', sans-serif", // Added font-syne
-                fontSize: 'clamp(18px, 5vw, 26px)',
-                fontWeight: 900,
-                lineHeight: 1.05,
-                background: 'linear-gradient(135deg, #fff 30%, #f97316 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                margin: '0 0 5px 0',
-              }}>
-                Create your<br />Bowl!
-              </p>
-              {/* Removed redundant color property */}
-              <p style={{
-                fontSize: 'clamp(10px, 2.5vw, 13px)',
-                color: '#000',
-                margin: 0,
-              }}>
-                Select a mode and spin
-              </p>
-            </div>
-          )}
-
-          {/* Mode Selected - Ready to Spin */}
-          {selectedMode && !showResult && !spinning && (
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 10,
-              userSelect: 'none',
-            }}>
-              <p style={{
-                fontSize: 'clamp(9px, 2vw, 12px)',
-                fontWeight: 700,
-                letterSpacing: '0.4em',
-                color: '#ff1212',
-                textTransform: 'uppercase',
-              }}>
-                {selectedMode === 'online' ? 'ORDER ONLINE' : 'SELF COOKING'}
-              </p> {/* Adjusted font size for mobile */}
-
-              <button
-                onClick={onSpin}
-                disabled={loading || disabled}
-                style={{
-                  background: `linear-gradient(135deg, ${modeColor.from}, ${modeColor.to})`,
-                  color: '#fff',
-                  fontFamily: "'Syne', sans-serif",
-                  fontWeight: 900,
-                  fontSize: 'clamp(10px, 2vw, 12px)',
-                  letterSpacing: '0.15em',
-                  padding: '12px 20px', // Adjusted padding
-                  borderRadius: '12px', // Rectangular with slight round
-                  border: 'none',
-                  cursor: loading || disabled ? 'not-allowed' : 'pointer',
-                  // boxShadow: `0 12px 40px ${modeColor.from}aa`,
-                  transition: 'all 0.25s ease',
-                }}
-                onMouseEnter={(e) => {
-                  if (!loading && !disabled) e.currentTarget.style.transform = 'scale(1.12)';
-                }} /* Adjusted font size for mobile */
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-              >
-                {loading ? '•••' : "SPIN NOW"}
-              </button>
-
-              <p style={{ fontSize: 'clamp(9px, 2vw, 11px)', color: 'rgb(247 10 10 / 81%)', margin: 0 }}>
-                tap to spin the wheel
-              </p>
-            </div>
-          )}
-
-          {/* Spinning State */}
-          {spinning && (
+          {spinning ? (
+            /* --- Spinning State --- */
             <div className="relative w-[35%] aspect-square">
               <div style={{
                 position: 'absolute',
@@ -187,41 +122,79 @@ const SpinWheel = forwardRef(({
                 boxShadow: '0 0 30px #f97316',
               }} />
             </div>
-          )}
-
-          {/* Result State */}
-          {showResult && suggestedFood && (
+          ) : (
+            /* --- Default Image / Result State --- */
             <div
-              className="relative flex flex-col items-center justify-center bg-white shadow-[0_25px_60px_rgba(0,0,0,0.4)] overflow-hidden"
+              className="relative flex flex-col items-center justify-center bg-neutral-100 shadow-[0_25px_60px_rgba(0,0,0,0.4)] overflow-hidden w-full h-full rounded-full border-4 border-white"
               style={{ 
-                width: '100%', // Make it fill most of the parent
-                height: '100% ', // Make it fill most of the parent
-                borderRadius: '50%',
-                border: '3px solid white',
-                animation: 'pop-in 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards' 
+                animation: showResult ? 'pop-in 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards' : 'none'
               }}
             >
               <img
-                src={suggestedFood.image}
-                alt={suggestedFood.name}
+                src={displayImage}
+                alt="Food"
                 style={{ 
                   position: 'absolute',
                   inset: 0,
                   width: '100%', 
                   height: '100%', 
                   objectFit: 'cover',
+                  filter: !showResult ? 'brightness(0.65) saturate(1.1)' : 'none',
+                  transition: 'filter 0.5s ease'
                 }}
               />
-              {/* Text Overlay for premium feel */}
-              {/* <div className="absolute bottom-0 left-0 right-0 pt-8 pb-10 px-4 text-center"
-                style={{
-                  background: 'linear-gradient(to top, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)'
-                }}
-              >
-                <p className="text-white font-bold text-sm m-0 leading-tight tracking-wide uppercase">
-                  {suggestedFood.name}
-                </p>
-              </div> */}
+
+              {/* Overlay Content when NOT showing a result */}
+              {!showResult && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-20">
+                  {!selectedMode ? (
+                    /* No Mode State */
+                    <div className="flex flex-col items-center gap-4">
+                      <p style={{
+                        fontFamily: "'Syne', sans-serif",
+                        fontSize: 'clamp(18px, 5vw, 24px)',
+                        fontWeight: 900,
+                        lineHeight: 1.1,
+                        background: 'linear-gradient(to bottom, #fff, #fb923c)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                      }}>
+                        Create your<br />Bowl!
+                      </p>
+                      <div className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
+                        <p className="text-[10px] text-white/80 font-bold uppercase tracking-widest">Select Mode</p>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Ready to Spin State */
+                    <div className="flex flex-col items-center gap-4">
+                      <p className="text-[10px] font-black tracking-[0.4em] text-white/60 uppercase">
+                        {selectedMode === 'online' ? 'Delivery Mode' : 'Chef Mode'}
+                      </p>
+                      <button
+                        onClick={onSpin}
+                        disabled={loading || disabled}
+                        className={`active:scale-95 transition-transform ${!loading && !disabled ? 'spin-button-ready' : ''}`}
+                        style={{
+                          background: `linear-gradient(135deg, ${modeColor.from}, ${modeColor.to})`,
+                          color: '#fff',
+                          fontFamily: "'Syne', sans-serif",
+                          fontWeight: 900,
+                          fontSize: '12px',
+                          letterSpacing: '0.15em',
+                          padding: '12px 24px',
+                          borderRadius: '14px',
+                          border: '1px solid rgba(255,255,255,0.3)',
+                          cursor: loading || disabled ? 'not-allowed' : 'pointer',
+                          boxShadow: `0 10px 25px ${modeColor.from}66`,
+                        }}
+                      >
+                        {loading ? '•••' : "SPIN NOW"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -256,7 +229,9 @@ const SpinWheel = forwardRef(({
           borderRadius: '50%',
         }} />
       </div>
+      </div>
     </div>
+
   );
 });
 

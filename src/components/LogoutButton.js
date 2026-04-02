@@ -97,34 +97,34 @@ export default function LogoutButton() {
         <span className="absolute bottom-1 right-1 w-3 h-3 bg-green-500 border-2 border-black rounded-full"></span>
       </button>
 
-      {/* Dropdown Menu */}
+      {/* Compact Dropdown Menu */}
       {isOpen && (
         <>
           <div 
             className="fixed inset-0 z-40" 
             onClick={() => setIsOpen(false)}
           ></div>
-          <div className="absolute right-0 mt-3 w-[75vw] max-w-[240px] bg-white/75 backdrop-blur-3xl border border-white/60 rounded-[1.5rem] sm:rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] z-50 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200 origin-top-right">
-            <div className="px-5 py-4 border-b border-black/5 bg-white/30">
-              <p className="text-[8px] sm:text-[9px] text-slate-500 font-black uppercase tracking-[0.1em] mb-0.5">Account</p>
-              <p className="text-xs sm:text-sm text-slate-900 font-black truncate">{session?.user?.email}</p>
+          <div className="absolute right-0 mt-3 w-64 bg-black/40 backdrop-blur-3xl border border-white/15 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 origin-top-right">
+            <div className="px-6 py-5 border-b border-white/10 bg-white/5">
+              <p className="text-[9px] text-white/30 font-black uppercase tracking-[0.2em] mb-1">Session Active</p>
+              <p className="text-xs text-white/90 font-bold truncate">{session?.user?.email}</p>
             </div>
             
-            <div className="p-2">
-              <Link href="/profile" className="flex items-center gap-3 px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 hover:bg-white/60 rounded-xl transition-all">
-                <span className="text-base sm:text-lg">👤</span> Profile
+            <div className="p-2 flex flex-col gap-1">
+              <Link href="/profile" className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-white/60 hover:text-white hover:bg-white/5 rounded-2xl transition-all group">
+                <span className="text-lg group-hover:scale-110 transition-transform">👤</span> Profile Details
               </Link>
-              <Link href="/preferences" className="flex items-center gap-3 px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 hover:bg-white/60 rounded-xl transition-all">
-                <span className="text-base sm:text-lg">⚙️</span> Settings
+              <Link href="/preferences" className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-white/60 hover:text-white hover:bg-white/5 rounded-2xl transition-all group">
+                <span className="text-lg group-hover:rotate-45 transition-transform">⚙️</span> Settings
               </Link>
             </div>
 
-            <div className="p-2 border-t border-black/5">
+            <div className="p-2 border-t border-white/10">
               <button 
                 onClick={handleLogout}
-                className="flex items-center gap-3 w-full px-4 py-2.5 text-xs sm:text-sm text-red-600 hover:text-red-700 hover:bg-red-50/50 rounded-xl transition-all font-black text-left"
+                className="flex items-center gap-3 w-full px-4 py-3 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-2xl transition-all font-black text-left"
               >
-                <span className="text-lg">🚪</span> Logout
+                <span className="text-lg">🚪</span> Logout Account
               </button>
             </div>
           </div>

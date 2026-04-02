@@ -7,13 +7,13 @@ export default function IngredientDrawer({ visible, onClose, ingredients, active
 
   return (
     <div
-      className="fixed inset-0 z-[1000] bg-black/40 flex justify-end items-center "
-      style={{ animation: "fadeIn 0.2s ease" }}
+      className="fixed inset-0 z-[10000] bg-black/10 backdrop-blur-md flex justify-end"
+      style={{ animation: "fadeIn 0.3s ease-out" }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <style>{`
         @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
-        @keyframes slideInCard { from { transform: translateX(30px); opacity: 0 } to { transform: translateX(0); opacity: 1 } }
+        @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
         .drawer-scroll::-webkit-scrollbar { width: 3px; }
         .drawer-scroll::-webkit-scrollbar-track { background: transparent; }
         .drawer-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
@@ -21,12 +21,11 @@ export default function IngredientDrawer({ visible, onClose, ingredients, active
 
       <div
         className="
-          w-full max-w-xs sm:max-w-sm md:max-w-md h-[70vh] flex flex-col gap-5
-          bg-black/30 border border-white/40
-          mr-6 rounded-[2.5rem]
-          px-6 py-8 shadow-2xl
+          w-full max-w-[380px] h-[calc(100vh-140px)] mt-[100px] mb-[40px] mr-5 flex flex-col gap-6
+          bg-white/[0.03] backdrop-blur-3xl border border-white/15
+          px-6 py-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] rounded-[2.5rem]
         "
-        style={{ animation: "slideInCard 0.4s cubic-bezier(0.22,1,0.36,1)" }}
+        style={{ animation: "slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1)" }}
       >
         {/* Header */}
         <div className="flex items-start justify-between flex-shrink-0">
@@ -62,8 +61,8 @@ export default function IngredientDrawer({ visible, onClose, ingredients, active
                   border transition-all duration-[220ms] ease-[cubic-bezier(0.34,1.56,0.64,1)]
                   hover:scale-[1.04]
                   ${on
-                    ? "bg-white/40 border-white/60 text-white"
-                    : "bg-white/10 border-white/20 text-white/60 hover:bg-white/20 hover:text-white/90"
+                    ? "bg-green-500/30 border-green-400/50 text-white shadow-[0_0_15px_rgba(34,197,94,0.3)]"
+                    : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white/90"
                   }
                 `}
               >

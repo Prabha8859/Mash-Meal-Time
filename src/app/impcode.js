@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { getAutoMealTiming, getAutoWeatherCondition } from "@/lib/utils";
 import FoodSpin from "@/components/FoodSpin";
 import LogoutButton from "@/components/LogoutButton";
-import ShapeGrid  from "@/components/FloatingLines";
+import FloatingLines from "@/components/FloatingLines";
 import { cookies } from "next/headers";
 
 async function getFoods(queryString = "") {
@@ -108,7 +108,7 @@ export default async function Home() {
     finalParams.get("mealTiming")?.split(",")[0] || "Lunch";
 
   return (
-    <div className="h-screen w-screen overflow-hidden relative bg-black">
+    <div className="h-screen w-screen overflow-hidden relative bg-black/20">
 
       {/* ── LAYER 1: Background Video ── */}
       {/* <video
@@ -122,17 +122,21 @@ export default async function Home() {
       /> */}
 
       {/* ── LAYER 2: Dark overlay so lines stay visible ── */}
-      <div className="absolute inset-0 bg-black/40 z-[1]" />
+      <div className="absolute inset-0 bg-black/ z-[1]" />
 
       <div className="absolute inset-0 z-[2]">
-        <ShapeGrid 
-          speed={0.2}
-          squareSize={40}
-          direction="diagonal"
-          borderColor="rgba(0, 242, 255, 0.15)"
-          hoverFillColor="rgba(0, 242, 255, 0.3)"
-          shape="square"
-          hoverTrailAmount={2}
+        <FloatingLines
+          enabledWaves={["middle", "bottom", "top",]}
+          lineCount={[5, 4]}
+          lineDistance={[5, 4]}
+          bendRadius={5}
+          bendStrength={-0.5}
+          interactive={true}
+          parallax={true}
+          parallaxStrength={0.15}
+          animationSpeed={0.6}
+          linesGradient={["#E945F5", "#2F4BC0", "#E945F6", "#ffffff"]}
+          mixBlendMode="screen"
         />
       </div>
 

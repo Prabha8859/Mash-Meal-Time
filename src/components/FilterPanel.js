@@ -80,23 +80,28 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap');
         
         .fp-overlay {
-          position: fixed; inset: 0; z-index: 9999;
+          position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 10000;
           display: flex; justify-content: flex-end;
-          background: rgba(0,0,0,0.4);
-          backdrop-filter: blur(4px);
-          animation: fadeIn 0.2s ease;
+          background: rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(8px);
+          animation: fadeIn 0.3s ease-out forwards;
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .fp-panel {
-          position: relative;
-          width: 100%; max-width: 280px; /* Adjusted for slightly smaller mobile screens */
-          background: #fafaf9;
-          height: 100%;
+          width: 100%;
+          max-width: 380px;
+          height: calc(100vh - 140px); /* Proper spacing for top/bottom */
+          margin-top: 100px; /* Offset to sit below header */
+          margin-right: 20px;
+          margin-bottom: 40px;
+          background: rgba(15, 15, 15, 0.2);
+          backdrop-filter: blur(40px) saturate(160%);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 32px;
           display: flex; flex-direction: column;
-          overflow: hidden;
-          animation: slideIn 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
-          box-shadow: -20px 0 60px rgba(0,0,0,0.15);
+          box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
+          animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         @keyframes slideIn {
           from { transform: translateX(100%); }
@@ -131,15 +136,15 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
           {/* Header */}
           <div style={{
             padding: '16px 20px', /* Slightly reduced padding */
-            borderBottom: '1px solid #e5e7eb',
-            background: '#fff',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+            background: 'transparent',
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           }}>
             <div>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 'clamp(10px, 2.5vw, 11px)', fontWeight: 700, color: '#f97316', letterSpacing: '0.12em', textTransform: 'uppercase', margin: 0 }}>
-                Customize Filters
+                Meal Preferences
               </p>
-              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(20px, 5vw, 22px)', fontWeight: 800, color: '#1a1a1a', margin: 0 }}>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(20px, 5vw, 22px)', fontWeight: 800, color: '#ffffff', margin: 0 }}>
                 Your Filters
               </h3>
             </div>
@@ -158,9 +163,9 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
                 className="fp-close flex-shrink-0" /* Added flex-shrink-0 */
                 style={{
                   width: 38, height: 38, borderRadius: '50%',
-                  background: '#f9fafb', border: '1.5px solid #e5e7eb',
+                  background: 'rgba(255,255,255,0.05)', border: '1.5px solid rgba(255,255,255,0.1)',
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#6b7280',
+                  color: '#ffffff',
                 }}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -171,12 +176,12 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
           </div>
 
           {/* Scrollable filter content */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 24 }}> {/* Reduced padding and gap */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 28 }}>
             {FILTER_CONFIG.map((category) => (
               <div key={category.id}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                   <span style={{ fontSize: 18 }}>{category.emoji}</span>
-                  <h4 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 'clamp(13px, 3vw, 14px)', fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '0.02em' }}>
+                  <h4 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 'clamp(13px, 3vw, 14px)', fontWeight: 700, color: '#ffffff', margin: 0, letterSpacing: '0.02em' }}>
                     {category.label}
                   </h4>
                   {filters[category.id]?.length > 0 && (
@@ -201,10 +206,10 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
                           padding: '6px 12px', /* Slightly reduced padding */
                           borderRadius: 50, 
                           fontSize: 13, fontWeight: 600,
-                          background: isActive ? '#1a1a1a' : '#fff',
-                          color: isActive ? '#fff' : '#374151',
-                          border: `1.5px solid ${isActive ? '#1a1a1a' : '#e5e7eb'}`,
-                          boxShadow: isActive ? '0 4px 12px rgba(0,0,0,0.2)' : '0 1px 3px rgba(0,0,0,0.05)',
+                          background: isActive ? 'rgba(249, 115, 22, 0.2)' : 'rgba(255,255,255,0.05)',
+                          color: isActive ? '#fb923c' : 'rgba(255,255,255,0.6)',
+                          border: `1.5px solid ${isActive ? '#f97316' : 'rgba(255,255,255,0.1)'}`,
+                          boxShadow: isActive ? '0 4px 12px rgba(249,115,22,0.2)' : 'none',
                         }}
                       >
                         {isActive && <span style={{ marginRight: 5, fontSize: 11 }}>✓</span>}
@@ -220,8 +225,8 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
           {/* Footer */}
           <div style={{
             padding: '16px 20px', /* Slightly reduced padding */
-            borderTop: '1px solid #e5e7eb',
-            background: '#fff',
+            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+            background: 'transparent',
             display: 'flex', flexDirection: 'column', gap: 10,
           }}>
             <button
@@ -243,7 +248,7 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
                 setFilters({});
               }}
               style={{
-                width: '100%', padding: '10px',
+                width: '100%',
                 background: 'transparent', border: 'none',
                 color: '#9ca3af', fontSize: 13, fontWeight: 600, cursor: 'pointer',
                 fontFamily: "'DM Sans', sans-serif",
