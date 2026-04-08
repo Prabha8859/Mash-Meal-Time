@@ -18,11 +18,11 @@ export default function Header() {
         </Link>
         
         <div className="flex items-center gap-2 sm:gap-4">
-          {/* <Link href="/add-food">
+          <Link href="/add-food">
             <Button className="bg-green-600 hover:bg-green-700 text-white shadow-md transition-all rounded-lg font-semibold px-3 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-base whitespace-nowrap">
               Add <span className="hidden sm:inline">New</span> Food
             </Button>
-          </Link> */}
+          </Link>
           <LogoutButton />
         </div>
       </div>

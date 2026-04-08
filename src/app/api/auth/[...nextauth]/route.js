@@ -38,10 +38,13 @@ export const authOptions = {
   callbacks: {
     async session({ session, token }) {
       // Pass custom user data from the token to the session object
-      if (token) {
+      if (session?.user && token) {
         session.user.id = token.id;
-        session.user.profileComplete = token.profileComplete;
-        session.user.questionnaire = token.questionnaire;
+        session.user.name = token.name;
+        session.user.email = token.email;
+        session.user.image = token.picture;
+        session.user.profileComplete = token.profileComplete; // Ensure boolean
+        session.user.questionnaire = token.questionnaire; // Ensure array
       }
       return session;
     },
@@ -49,17 +52,34 @@ export const authOptions = {
       // This is called first. `user` is only available on initial sign-in.
       // We fetch the full user details from the DB and put them in the token.
       if (trigger === "update" && session) {
-        // When the session is updated (e.g., from preferences page),
-        // update the token with new data.
-        token.profileComplete = session.user.profileComplete;
-        token.questionnaire = session.user.questionnaire;
+        // Update token with new profile data but keep the existing ID
+        if (session.user) {
+          token.name = session.user.name || token.name;
+          token.email = session.user.email || token.email;
+          token.picture = session.user.image || token.picture;
+          token.profileComplete = session.user.profileComplete !== undefined 
+            ? session.user.profileComplete 
+            : token.profileComplete;
+          token.questionnaire = session.user.questionnaire || token.questionnaire;
+        }
         return token;
       }
       if (user) {
         await connectDB();
-        const dbUser = await User.findOne({ email: user.email }).select('-password');
+        // Search by googleId (sub) first, then fallback to email
+        const dbUser = await User.findOne({
+          $or: [
+            { googleId: user.id },
+            { googleId: token?.sub },
+            { email: user.email },
+          ]
+        }).select('-password');
+
         if (dbUser) {
-          token.id = dbUser._id.toString();
+          token.id = dbUser._id.toString(); // Ensure we use the MongoDB ID
+          token.name = dbUser.name;
+          token.email = dbUser.email;
+          token.picture = dbUser.image || user.image;
           token.profileComplete = dbUser.profileComplete;
           token.questionnaire = dbUser.questionnaire;
         }
@@ -70,14 +90,29 @@ export const authOptions = {
 
     async signIn({ user, account }) {
       if (account.provider === "google") {
-        const { name, email } = user;
+        const { name, email, id, image } = user;
         try {
           await connectDB();
-          const userExists = await User.findOne({ email });
+          
+          // 1. Always check by Google ID first (sub)
+          let userExists = await User.findOne({ googleId: id });
 
-          if (!userExists) {
-            await User.create({ name, email }); // Mongoose model defaults will apply
+          if (userExists) {
+            // Account exists. Even if email was changed in Profile, 
+            // they prove identity via Google ID.
+            return true;
           }
+
+          // 2. Fallback: If no Google ID link, check by Email to link accounts
+            userExists = await User.findOne({ email });
+            if (userExists) {
+              userExists.googleId = id;
+              if (!userExists.image) userExists.image = image; // Link initial image if missing
+              await userExists.save();
+            } else {
+              // 3. Truly new user
+              await User.create({ name, email, googleId: id, image }); 
+            }
           return true;
         } catch (error) {
           console.log("Error saving user from Google OAuth: ", error);

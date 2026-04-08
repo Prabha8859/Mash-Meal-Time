@@ -4,13 +4,14 @@ export default function ModeRow({ selectedMode, showResult, suggestedFood, spinn
   const modeBtn = (mode, label, activeClass) => (
     <button
       onClick={() => onModeSelect(mode)}
-      className={`
+      className={` cursor-pointer
         relative z-10 px-4 py-1.5 rounded-2xl flex-shrink-0
         font-[Outfit] font-bold text-[11px] tracking-[0.06em] uppercase
-        transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]
+        transition-all duration-300 active:scale-[0.95]
+        ${!selectedMode ? (mode === "online" ? "mode-highlight-red" : "mode-highlight-green") : ""}
         ${selectedMode === mode
           ? activeClass
-          : "text-white/40 hover:text-white/90 hover:bg-white/5"
+          : "text-white/40 hover:text-white/90 bg-white/[0.03] border border-white/40 shadow-[0_8px_16px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)]"
         }
       `}
     >
@@ -19,11 +20,28 @@ export default function ModeRow({ selectedMode, showResult, suggestedFood, spinn
   );
 
   return (
-    <div className="w-full flex items-center p-1.5 mb-2 bg-black/20 backdrop-blur-3xl border border-white/10 rounded-[1.5rem] shadow-inner relative overflow-hidden">
+    <div className="w-full flex items-center p-1.5 mb-2 bg-black/20 backdrop-blur-3xl border border-white/40 rounded-[1.5rem] shadow-inner relative overflow-hidden">
+      <style>{`
+        @keyframes modeRingRipple {
+          0% { outline: 2px solid var(--ring-color); outline-offset: 0px; }
+          100% { outline: 6px solid transparent; outline-offset: 15px; }
+        }
+        .mode-highlight-red {
+          --ring-color: rgba(239, 68, 68, 0.6);
+          border-radius: 1rem;
+          animation: modeRingRipple 4s infinite cubic-bezier(0.25, 0, 0.2, 1);
+        }
+        .mode-highlight-green {
+          --ring-color: rgba(34, 197, 94, 0.6);
+          border-radius: 1rem;
+          animation: modeRingRipple 4s infinite cubic-bezier(0.25, 0, 0.2, 1);
+        }
+      `}</style>
+
       {/* Platform Selection */}
       {modeBtn(
         "online", "🛵 Online",
-        "bg-blue-500/20 text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.2)] border border-blue-500/30"
+        "bg-red-500/10 text-red-400 shadow-[inset_0_8px_20px_rgba(0,0,0,0.85),0_0_0_1.5px_rgba(239,68,68,0.3)] border-transparent"
       )}
 
       {/* Center label */}
@@ -51,10 +69,10 @@ export default function ModeRow({ selectedMode, showResult, suggestedFood, spinn
           <div className="flex items-center gap-[5px]">
             <div className="h-px w-3 bg-white/10" />
             <div
-              className="w-1 h-1 rounded-full transition-all duration-700"
+              className="w-1 h-1 rounded-full transition-all duration-700 cursor-pointer"
               style={{
-                background: selectedMode === "online" ? "#3b82f6" : selectedMode === "self-cooking" ? "#22c55e" : "rgba(255,255,255,0.1)",
-                boxShadow: selectedMode ? `0 0 12px ${selectedMode === "online" ? "#3b82f6" : "#22c55e"}` : "none",
+                background: selectedMode === "online" ? "#ef4444" : selectedMode === "self-cooking" ? "#22c55e" : "rgba(255,255,255,0.1)",
+                boxShadow: selectedMode ? `0 0 12px ${selectedMode === "online" ? "#ef4444" : "#22c55e"}` : "none",
               }}
             />
             <div className="h-px w-4 bg-white/15" />
@@ -64,7 +82,7 @@ export default function ModeRow({ selectedMode, showResult, suggestedFood, spinn
 
       {modeBtn(
         "self-cooking", "🍳 Self",
-        "bg-green-500/20 text-green-400 shadow-[0_0_20px_rgba(34,197,94,0.2)] border border-green-500/30"
+        " bg-green-500/10 text-green-400 shadow-[inset_0_8px_20px_rgba(0,0,0,0.85),0_0_0_1.5px_rgba(34,197,94,0.3)] border-transparent"
       )}
     </div>
   );

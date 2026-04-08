@@ -1,6 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 // ─── Particle dot ─────────────────────────────────────────────────────────────
 function Particle({ style }) {
@@ -110,23 +111,70 @@ function Section({ step, title, subtitle, children }) {
 
 // ─── Main page ─────────────────────────────────────────────────────────────────
 export default function Preferences() {
+  const { data: session, update } = useSession();
   const router = useRouter();
+
+  // State for form inputs
   const [diet,      setDiet]      = useState("");
   const [allergies, setAllergies] = useState([]);
   const [goals,     setGoals]     = useState([]);
   const [cuisine,   setCuisine]   = useState([]);
   const [saving,    setSaving]    = useState(false);
+  const [toast,     setToast]     = useState({ show: false, message: "", type: "success" });
 
   const toggle = (setter) => (e) => {
     const v = e.target.value;
     setter(p => p.includes(v) ? p.filter(x => x !== v) : [...p, v]);
   };
 
+  // Auto-hide toast logic
+  useEffect(() => {
+    if (toast.show) {
+      const timer = setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast.show]);
+
   const handleSave = async () => {
-    if (!diet) return;
+    if (!diet || !session?.user?.id) return; // Ensure diet is selected and user ID exists
+
     setSaving(true);
-    await new Promise(r => setTimeout(r, 1200));
-    router.push("/");
+
+    const preferencesData = [
+      { questionId: "dietType", answer: [diet] },
+      { questionId: "allergies", answer: allergies },
+      { questionId: "healthGoals", answer: goals },
+      { questionId: "cuisine", answer: cuisine },
+      // Add other preference types here if needed
+    ].filter(pref => pref.answer.length > 0); // Only send preferences that have answers
+
+    try {
+      const res = await fetch('/api/preferences', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: session.user.id,
+          answers: preferencesData,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setToast({ show: true, message: "Preferences saved successfully! ✅", type: "success" });
+        // Update the session to reflect the new questionnaire and profileComplete status
+        await update({ user: { ...session.user, questionnaire: preferencesData, profileComplete: true } });
+        setTimeout(() => router.push("/"), 1500); // Redirect after short delay so they see success
+      } else {
+        setToast({ show: true, message: data.message || "Failed to save preferences.", type: "error" });
+      }
+    } catch (error) {
+      setToast({ show: true, message: "A connection error occurred. Please try again.", type: "error" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const particles = [
@@ -242,6 +290,26 @@ export default function Preferences() {
         isolation:"isolate",
         overflowX:"hidden",
       }}>
+
+        {/* ── Toast Notification ── */}
+        {toast.show && (
+          <div style={{
+            position: "fixed", bottom: "40px", left: "50%", transform: "translateX(-50%)",
+            zIndex: 1000, pointerEvents: "none", animation: "cardIn 0.4s ease-out"
+          }}>
+            <div style={{
+              padding: "12px 24px", borderRadius: "1.2rem", backdropFilter: "blur(20px)",
+              background: toast.type === "success" ? "rgba(34, 197, 94, 0.2)" : "rgba(239, 68, 68, 0.2)",
+              border: `1px solid ${toast.type === "success" ? "rgba(34, 197, 94, 0.4)" : "rgba(239, 68, 68, 0.4)"}`,
+              boxShadow: "0 20px 40px rgba(0,0,0,0.4)", color: "#fff", fontWeight: 700, fontSize: 14,
+              display: "flex", alignItems: "center", gap: 10, whiteSpace: "nowrap"
+            }}>
+              <span>{toast.type === "success" ? "✨" : "⚠️"}</span>
+              {toast.message}
+            </div>
+          </div>
+        )}
+
         {/* <div style={{
           position:"fixed", inset:0, zIndex:0,
           backgroundImage:"url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=2000&auto=format&fit=crop')",
@@ -252,7 +320,7 @@ export default function Preferences() {
         }} /> */}
 
         {/* Layer 1 – Cinematic Background Video */}
-        <video
+        {/* <video
           autoPlay={true}
           muted={true}
           loop={true}
@@ -265,7 +333,7 @@ export default function Preferences() {
             opacity: 0.8, transform: "scale(1.05)",
             filter: "brightness(0.8) saturate(1.2)"
           }}
-        />
+        /> */}
 
         {/* Layer 2 – blur and soft color overlay */}
         <div style={{

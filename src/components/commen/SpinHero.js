@@ -43,7 +43,7 @@ export default function SpinHero({ timeLeft, onClearFilters, onOpenFilters }) {
         <div className="flex flex-col items-end gap-2 flex-shrink-0">
           <button
             onClick={onOpenFilters}
-            className="filter-spin w-11 h-11 rounded-full bg-white/[0.18] backdrop-blur-xl border border-white/35 text-white flex items-center justify-center shadow-[0_4px_16px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.45)] transition-all duration-250"
+            className="cursor-pointer filter-spin w-11 h-11 rounded-full bg-white/[0.18] backdrop-blur-xl border border-white/35 text-white flex items-center justify-center shadow-[0_4px_16px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.45)] transition-all duration-250"
             title="Filters"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor">

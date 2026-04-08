@@ -149,6 +149,19 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
     if (expiryTime) { setFilterExpiry(expiryTime); setTimeLeft(Math.ceil((expiryTime - Date.now()) / 1000)); }
   };
 
+  const getGradientColors = () => {
+    if (selectedMode === "online") {
+      return { start: "rgb(239, 68, 68)", end: "rgb(249, 115, 22)" }; // Red to Orange
+    } else if (selectedMode === "self-cooking") {
+      return { start: "rgb(34, 197, 94)", end: "rgb(22, 163, 74)" }; // Green to Darker Green
+    }
+    return { start: "rgb(0, 183, 255)", end: "rgb(255, 48, 255)" }; // Default Blue to Pink
+  };
+
+  const isReadyToSpin = selectedMode && !spinning && !loading &&
+    !(selectedMode === "self-cooking" && Object.values(checkedIngredients).filter(Boolean).length === 0);
+
+
   const clearFilters = () => {
     setFilterExpiry(null); setTimeLeft(null);
     setCurrentQueryString(baseParams); setRejectedIds(new Set());
@@ -228,27 +241,61 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
     <>
       {/* Google Fonts */}
       <style>{`
-        // @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
         @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
-        @keyframes borderGlow {
-          0% { border-color: rgba(255,255,255,0.2); box-shadow: 0 0 0px rgba(255,255,255,0); }
-          50% { border-color: rgba(255,255,255,0.6); box-shadow: 0 0 40px rgba(255,255,255,0.15); }
-          100% { border-color: rgba(255,255,255,0.2); box-shadow: 0 0 0px rgba(255,255,255,0); }
+
+        @keyframes whiteCardPulse {
+          0%, 100% { box-shadow: 0 0 40px rgba(255, 255, 255, 0.15); }
+          50% { box-shadow: 0 0 60px 10px rgba(255, 255, 255, 0.3); }
         }
-        .attractive-card:hover {
-          animation: borderGlow 7s infinite ease-in-out;
-          background: rgba(255, 255, 255, 0.20) !important;
+        .food-engine-card {
+          background: #07182E;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          border-radius: 1.5rem;
+          z-index: 0;
+        }
+
+        .food-engine-card::before {
+          content: '';
+          position: absolute;
+          width: 150px;
+          background-image: linear-gradient(180deg, var(--gradient-start), var(--gradient-end));
+          height: 160%;
+          top: -30%;
+          left: 35%;
+          animation: rotBGimg 8s linear infinite;
+          transition: all 0.2s linear;
+          z-index: -2;
+        }
+
+        .food-engine-card::after {
+          content: '';
+          position: absolute;
+          background: #03060af7;
+          inset: 4px;
+          border-radius: 1.3rem;
+          z-index: -1;
+          backdrop-filter: blur(40px);
+        }
+
+        @keyframes rotBGimg {
+          from { transform: rotate(0deg); }        
+          to { transform: rotate(360deg); }
+          
         }
       `}</style>
 
-      <GlassCard
-        className="w-full px-5 py-6 transition-all duration-700 border-white/20 attractive-card shadow-[0_40px_120px_-20px_rgba(0,0,0,0.8)]"
-        style={{ 
+      <div 
+        className={`food-engine-card w-full px-5 py-6 transition-all duration-700 ${isReadyToSpin ? 'pulse-ready' : ''}`}
+        style={{
           maxWidth: 'min(95vw, 480px)',
-          background: 'rgba(255, 255, 255, 0.05)',
-          backdropFilter: 'blur(40px) saturate(150%)',
+          '--gradient-start': getGradientColors().start,
+          '--gradient-end': getGradientColors().end,
         }}
       >
+        <div className="relative z-10">
 
         {/* ── Hero ── */} 
         <SpinHero
@@ -311,7 +358,8 @@ export default function FoodSpin({ initialFoods, isFiltered, mealTiming, basePar
           </div>
         )}
 
-      </GlassCard>
+        </div>
+      </div>
 
       {/* ── Filter Panel ── */}
       {filtersVisible && (

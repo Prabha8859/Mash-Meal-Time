@@ -1,303 +1,394 @@
 "use client";
-import React from 'react';
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import ShapeGrid  from "@/components/FloatingLines";
+import ShapeGrid from "@/components/FloatingLines";
+import { useState, useEffect } from "react";
+const tagColors = [
+  "bg-orange-50 text-orange-600 border-orange-200",
+  "bg-blue-50 text-blue-600 border-blue-200",
+  "bg-green-50 text-green-600 border-green-200",
+  "bg-purple-50 text-purple-600 border-purple-200",
+];
 
 export default function ProfilePage() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="relative">
-          <div className="w-12 h-12 border-2 border-orange-500/20 border-t-orange-500 rounded-full animate-spin" />
-          <div className="w-12 h-12 border-2 border-orange-400/10 border-b-orange-400/60 rounded-full animate-spin absolute inset-0" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
-        </div>
-      </div>
-    );
-  }
+  // Form state for editing
+  const [editData, setEditData] = useState({
+    name: session?.user?.name ?? "",
+    email: session?.user?.email ?? "",
+    image: session?.user?.image ?? ""
+  });
 
-  if (!session) {
-    return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white gap-6">
-        <div className="w-16 h-16 rounded-3xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-3xl">🔒</div>
-        <p className="text-white/40 font-bold uppercase tracking-[0.3em] text-xs">Access Denied</p>
-        <Link href="/login" className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-400 rounded-2xl font-black text-sm hover:shadow-[0_0_30px_rgba(249,115,22,0.4)] transition-all duration-300">
-          Login to Continue
-        </Link>
-      </div>
-    );
-  }
+  // Move useEffect to the top, before any early returns
+  useEffect(() => {
+    if (session) {
+      setEditData({
+        name: session.user.name ?? "",
+        email: session.user.email ?? "",
+        image: session.user.image ?? ""
+      });
+    }
+  }, [session]);
+
+  if (status === "loading") return (
+    <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="w-10 h-10 border-2 border-t-orange-500 border-orange-500/20 rounded-full animate-spin" />
+    </div>
+  );
+
+  if (!session) return (
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
+      <span className="text-4xl">🔒</span>
+      <Link href="/login" className="px-8 py-3 bg-orange-500 text-white rounded-xl font-bold text-sm">Login</Link>
+    </div>
+  );
+
+  const q = session.user.questionnaire ?? [];
+  const diet = q.find(x => x.questionId === "dietType")?.answer?.[0];
+  const goals = q.find(x => x.questionId === "healthGoals" || x.questionId === "weightGoal")?.answer ?? [];
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!editData.name.trim()) newErrors.name = "Name is required";
+    else if (editData.name.length < 2) newErrors.name = "Name is too short";
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!editData.email.trim()) newErrors.email = "Email is required";
+    else if (!emailRegex.test(editData.email)) newErrors.email = "Invalid email format";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const img = new Image();
+        img.src = reader.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 128;
+          const MAX_HEIGHT = 128;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+          } else {
+            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          setEditData({ ...editData, image: canvas.toDataURL('image/jpeg', 0.7) });
+        };
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    setIsUpdatingProfile(true);
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editData),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        await update({ user: data.user }); // Update the session with new data
+        console.log("Profile updated successfully!");
+      } else {
+        console.error("Failed to update profile:", data.message);
+      }
+    } catch (error) {
+      console.error("Error during profile update:", error);
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+    setIsEditModalOpen(false);
+  };
 
   return (
-    <div className="min-h-screen relative bg-black overflow-hidden font-[DM_Sans]">
-
-      {/* Video Background */}
-      <div className="absolute inset-0 bg-black/40 z-[1]" />
-     
-           <div className="absolute inset-0 z-[2]">
-             <ShapeGrid 
-               speed={0.2}
-               squareSize={40}
-               direction="diagonal"
-               borderColor="rgba(0, 242, 255, 0.15)"
-               hoverFillColor="rgba(0, 242, 255, 0.3)"
-               shape="square"
-               hoverTrailAmount={2}
-             />
-           </div>
+    <div className="min-h-screen relative bg-black overflow-x-hidden">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap');
-
-        .profile-scroll::-webkit-scrollbar { width: 2px; }
-        .profile-scroll::-webkit-scrollbar-thumb { background: rgba(249,115,22,0.3); border-radius: 4px; }
-
-        .glow-card {
-          box-shadow: 
-            0 0 0 1px rgba(255,255,255,0.08),
-            0 32px 64px -16px rgba(0,0,0,0.7),
-            inset 0 1px 0 rgba(255,255,255,0.06);
+        @keyframes whiteCardPulse {
+          0%, 100% { box-shadow: 0 0 40px rgba(255, 255, 255, 0.15); }
+          50% { box-shadow: 0 0 60px 10px rgba(255, 255, 255, 0.3); }
         }
-
-        .pref-card {
-          transition: all 0.2s ease;
-        }
-        .pref-card:hover {
-          border-color: rgba(249,115,22,0.3);
-          background: rgba(249,115,22,0.05);
-          transform: translateX(4px);
-        }
-
-        .action-btn {
-          transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .action-btn:hover {
-          transform: translateY(-2px) scale(1.01);
-        }
-        .action-btn:active { transform: scale(0.97); }
-
-        .avatar-glow {
-          box-shadow: 
-            0 0 0 2px rgba(249,115,22,0.2),
-            0 0 30px rgba(249,115,22,0.15),
-            0 0 60px rgba(249,115,22,0.05);
-        }
-
-        .module-highlight {
+        .food-engine-card {
+          background: #07182E;
           position: relative;
-          overflow: hidden;
-        }
-        .module-highlight::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(135deg, rgba(249,115,22,0.08) 0%, transparent 60%);
-          pointer-events: none;
-        }
-
-        .tag-pill {
-          transition: all 0.15s ease;
-        }
-        .tag-pill:hover {
-          background: rgba(249,115,22,0.25);
-          transform: scale(1.05);
-        }
-
-        .stat-box {
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 20px;
-          padding: 16px;
           display: flex;
           flex-direction: column;
-          gap: 4px;
-          transition: all 0.2s ease;
-        }
-        .stat-box:hover {
-          background: rgba(255,255,255,0.05);
-          border-color: rgba(249,115,22,0.2);
+          overflow: hidden;
+          border-radius: 1.5rem; /* Squared shape */
+          box-shadow: 0 0 40px rgba(255, 255, 255, 0.15); /* White shadow */
+          z-index: 0;
         }
 
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(24px); }
-          to { opacity: 1; transform: translateY(0); }
+        .food-engine-card::before {
+          content: '';
+          position: absolute;
+          width: 150px; /* Adjusted width for rotating border */
+          background-image: linear-gradient(180deg, var(--gradient-start), var(--gradient-end));
+          height: 160%;
+          top: -30%; /* Adjusted for smaller overall size */
+          left: 35%;
+          animation: rotBGimg 8s linear infinite;
+          transition: all 0.2s linear;
+          z-index: -1; /* Place it behind ::after */
         }
-        .fade-up { animation: fadeUp 0.5s ease forwards; }
-        .fade-up-1 { animation: fadeUp 0.5s 0.1s ease both; }
-        .fade-up-2 { animation: fadeUp 0.5s 0.2s ease both; }
-        .fade-up-3 { animation: fadeUp 0.5s 0.3s ease both; }
 
-        .close-btn {
-          transition: all 0.2s ease;
+        .food-engine-card::after {
+          content: '';
+          position: absolute;
+          background: rgba(7, 24, 46, 0.9); /* Slightly transparent inner dark background */
+          inset: 0px; /* Remove the inset to cover ::before */
+          border-radius: 1.5rem; /* Match card border-radius */
+          z-index: 0; /* Place it on top of ::before */
+          backdrop-filter: blur(40px);
         }
-        .close-btn:hover {
-          background: rgba(255,255,255,0.15);
-          transform: rotate(90deg);
+
+        @keyframes rotBGimg {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        @keyframes wiggle {
+          0%, 100% { transform: rotate(0deg); }
+          25% { transform: rotate(-12deg); }
+          50% { transform: rotate(12deg); }
+          75% { transform: rotate(-12deg); }
+        }
+        .edit-icon-wiggle {
+          animation: wiggle 0.6s ease-in-out 2;
+          animation-delay: 0.8s;
         }
       `}</style>
 
-      {/* Top bar */}
-      <header className="absolute top-0 left-0 w-full z-20 flex items-center justify-between px-6 py-4">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-lg text-lg">🍽️</div>
-          <span className="text-white font-black hidden md:block tracking-tight">
-            Meal<span className="text-green-400">Mind</span>
-          </span>
+      {/* Original background — ShapeGrid only */}
+      <div className="absolute inset-0 z-[1]">
+        <ShapeGrid speed={0.2} squareSize={40} direction="diagonal"
+          borderColor="rgba(0,242,255,0.15)" hoverFillColor="rgba(0,242,255,0.3)"
+          shape="square" hoverTrailAmount={2} />
+      </div>
+
+      {/* Topbar */}
+      <header className="fixed top-0 inset-x-0 z-30 flex items-center justify-between px-6 py-3 bg-black/60 backdrop-blur border-b border-white/[0.06]">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">🍽️</div>
+          <span className="font-black text-white hidden sm:block">Meal<span className="text-green-400">Mind</span></span>
         </Link>
-        <Link href="/" className="close-btn w-9 h-9 rounded-2xl bg-white/5 border border-white/10 text-white/50 flex items-center justify-center hover:text-white">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <path d="M18 6L6 18M6 6l12 12"/>
-          </svg>
-        </Link>
+        <Link href="/" className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors">✕</Link>
       </header>
 
-      {/* Main layout */}
-      <div className="relative z-10 min-h-screen flex flex-col lg:flex-row items-center justify-center gap-8 px-4 py-24">
+      {/* Content */}
+      <main className="relative z-10 min-h-screen flex items-start justify-center pt-16 pb-10 px-4">
+        <div className="w-full max-w-md">
 
-        {/* ── LEFT: User Identity Card ── */}
-        <div className="fade-up w-full max-w-sm">
-          <div className="glow-card bg-white/[0.04] backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 flex flex-col items-center gap-6 module-highlight">
+          <div className="food-engine-card p-6 flex flex-col gap-6"
+            style={{ '--gradient-start': 'rgb(0, 183, 255)', '--gradient-end': 'rgb(255, 48, 255)' }}>
+            
+            <button 
+              onClick={() => setIsEditModalOpen(true)}
+              className="absolute top-5 right-5 z-20 w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-orange-400 hover:border-orange-500/30 hover:bg-white/10 transition-all shadow-lg edit-icon-wiggle" 
+              title="Edit Profile"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            </button>
 
-            {/* Status badge */}
-            <div className="flex items-center gap-2 px-4 py-1.5 bg-green-500/10 border border-green-500/20 rounded-full">
-              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-              <span className="text-[10px] text-green-300 font-black uppercase tracking-widest">Active Session</span>
+            {/* ── Section 1: Identity ── */}
+            <div className="flex flex-col items-center gap-4 relative z-10">
+              <div className="w-24 h-24 rounded-3xl border-2 border-white/20 shadow-xl bg-white/5 flex items-center justify-center text-4xl font-black text-orange-400 overflow-hidden">
+                {session.user.image
+                  ? <img src={session.user.image} alt="" className="w-full h-full object-cover" />
+                  : session.user.name?.charAt(0) ?? "U"}
+              </div>
+              <div className="text-center">
+                <p className="text-white font-black text-xl tracking-tight">{session.user.name ?? "Chef"}</p>
+                <p className="text-white/50 text-xs font-medium mt-1">{session.user.email}</p>
+              </div>
             </div>
 
-            {/* Avatar */}
-            <div className="relative">
-              <div className="w-28 h-28 rounded-[2rem] overflow-hidden avatar-glow bg-neutral-800 border-2 border-orange-500/20">
-                {session.user.image ? (
-                  <img src={session.user.image} alt="User" className="w-full h-full object-cover" />
+            {/* ── Section 2: Stats ── */}
+            <div className="w-full grid grid-cols-2 gap-2 relative z-10">
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col items-center">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <div className="w-0.5 h-3 bg-orange-500 rounded-full" />
+                  <p className="text-[10px] text-orange-400 font-bold uppercase tracking-widest">Goals</p>
+                </div>
+                {goals.length > 0 ? (
+                  <p className="font-black text-orange-400 text-xs capitalize truncate leading-none">{goals[0]}</p>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-4xl font-black bg-gradient-to-br from-orange-500/20 to-orange-800/20 text-orange-300">
-                    {session.user.name?.charAt(0) || "U"}
-                  </div>
+                  <p className="font-black text-white/50 text-xs leading-none">—</p>
                 )}
               </div>
-              {/* Orange ring accent */}
-              <div className="absolute -inset-1 rounded-[2.2rem] border border-orange-500/20 pointer-events-none"></div>
-            </div>
-
-            {/* Name & Email */}
-            <div className="text-center">
-              <h1 className="text-white font-black text-3xl tracking-tight leading-none mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
-                {session.user.name || "Chef"}
-              </h1>
-              <p className="text-white/35 text-sm font-medium">{session.user.email}</p>
-            </div>
-
-            {/* Quick stats */}
-            <div className="w-full grid grid-cols-2 gap-3">
-              <div className="stat-box">
-                <span className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Preferences</span>
-                <span className="text-white font-black text-xl">{session.user.questionnaire?.length || 0}</span>
-              </div>
-              <div className="stat-box">
-                <span className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Diet</span>
-                <span className="text-orange-300 font-black text-sm capitalize truncate">
-                  {session.user.questionnaire?.find(q => q.questionId === 'dietType')?.answer?.[0] || '—'}
-                </span>
-              </div>
-            </div>
-
-            {/* Divider */}
-            <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-            {/* Actions */}
-            <div className="w-full flex flex-col gap-3">
-              <Link href="/preferences" className="action-btn flex items-center justify-between w-full px-5 py-4 bg-white/[0.04] border border-white/10 rounded-2xl group hover:border-orange-500/30">
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">⚙️</span>
-                  <span className="text-sm text-white font-bold">Update Preferences</span>
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col items-center">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <div className="w-0.5 h-3 bg-orange-500 rounded-full" />
+                  <p className="text-[10px] text-orange-400 font-bold uppercase tracking-widest">Diet</p>
                 </div>
-                <svg className="text-white/20 group-hover:text-orange-400 transition-colors" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
-              </Link>
+                <p className="font-black text-orange-400 text-xs capitalize truncate leading-none">{diet ?? "—"}</p>
+              </div>
+            </div>
 
-              <button
-                onClick={() => signOut({ callbackUrl: "/login" })}
-                className="action-btn flex items-center justify-center gap-3 w-full py-4 bg-red-500/8 border border-red-500/15 text-red-400 rounded-2xl font-black text-sm hover:bg-red-500/15 hover:border-red-500/30"
+            <div className="w-full h-px bg-white/10 relative z-10" />
+
+            {/* ── Section 3: Preferences (Dropdown) ── */}
+            <div className="flex flex-col gap-3 relative z-10">
+              <button 
+                onClick={() => setPreferencesOpen(!preferencesOpen)}
+                className="flex items-center gap-2 px-1 w-full text-left cursor-pointer group"
               >
-                <span>🚪</span> Sign Out
+                <div className="w-1 h-4 bg-orange-500 rounded-full" />
+                <span className="text-[10px] font-black text-orange-400 uppercase tracking-widest">Saved Preferences</span>
+                <span className="text-white/30 text-[10px] font-bold ml-1">({q.length})</span>
+                <svg className={`w-3 h-3 text-white/30 ml-auto transition-transform duration-300 ${preferencesOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {preferencesOpen && (
+                <div className="flex flex-col gap-3 max-h-60 overflow-y-auto pr-1 drawer-scroll">
+                  {q.length > 0 ? q.map((pref, i) => (
+                    <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-3">
+                      <p className="text-[9px] text-white/30 font-bold uppercase tracking-widest mb-1.5">
+                        {pref.questionId.replace(/([A-Z])/g, " $1").trim()}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(Array.isArray(pref.answer) ? pref.answer : [pref.answer]).map((ans, j) => (
+                          <span key={j} className={`px-2 py-0.5 border rounded-lg text-[10px] font-extrabold capitalize ${tagColors[i % 4]}`}>{ans}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )) : (
+                    <p className="text-white/30 text-xs text-center py-4 italic">No preferences saved</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="w-full h-px bg-white/10 relative z-10" />
+
+            <Link href="/add-food" className="w-full flex items-center justify-between px-5 py-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-orange-500/30 transition-all group relative z-10">
+              <span className="text-[11px] font-bold text-white/80 group-hover:text-orange-400 transition-colors uppercase tracking-wider">🍳 Contribute Recipe</span>
+              <span className="text-white/20 group-hover:text-white/50">→</span>
+            </Link>
+
+            {/* ── Section 5: Actions ── */}
+            <div className="flex flex-row gap-2 relative z-10">
+              <Link href="/preferences" className="flex-1 flex items-center justify-center px-4 py-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-orange-500/30 transition-all group">
+                <span className="text-[11px] font-bold text-white/80 group-hover:text-orange-400 transition-colors uppercase tracking-wider">⚙️ Settings</span>
+              </Link>
+              <button onClick={() => signOut({ callbackUrl: "/login" })}
+                className="flex-1 py-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl text-[11px] font-bold hover:bg-red-500/20 transition-all uppercase tracking-wider">
+                🚪 Logout
               </button>
             </div>
+            
+            <p className="text-center text-white/20 text-[10px] relative z-10">Personalizing your recommendations</p>
           </div>
         </div>
+      </main>
 
-        {/* ── RIGHT: Preferences Panel ── */}
-        <div className="fade-up-1 w-full max-w-lg flex flex-col gap-5">
+      {/* ── Edit Profile Modal ── */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="food-engine-card w-full max-w-sm p-8 flex flex-col gap-6"
+               style={{ '--gradient-start': 'rgb(251, 146, 60)', '--gradient-end': 'rgb(234, 88, 12)' }}>
+            
+            <div className="relative z-10">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-white font-black text-xl tracking-tight">Update Profile</h3>
+                <button onClick={() => setIsEditModalOpen(false)} className="text-white/40 hover:text-white">✕</button>
+              </div>
 
-          {/* Section header */}
-          <div className="flex items-center gap-3 px-2">
-            <div className="w-1 h-6 bg-gradient-to-b from-orange-400 to-orange-600 rounded-full"></div>
-            <p className="text-[11px] font-black text-orange-400 tracking-[0.3em] uppercase">Saved Preferences</p>
-            {session.user.questionnaire?.length > 0 && (
-              <span className="ml-auto text-[10px] text-white/20 font-bold">{session.user.questionnaire.length} saved</span>
-            )}
-          </div>
+              <form onSubmit={handleUpdateProfile} className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] text-orange-400 font-bold uppercase tracking-widest px-1">Display Name</label>
+                  <input 
+                    type="text" 
+                    value={editData.name}
+                    onChange={(e) => setEditData({...editData, name: e.target.value})}
+                    className={`bg-white/5 border ${errors.name ? 'border-red-500' : 'border-white/10'} rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500/50 transition-colors`}
+                    placeholder="Your Name"
+                  />
+                  {errors.name && <p className="text-red-500 text-[10px] px-1">{errors.name}</p>}
+                </div>
 
-          {/* Preferences cards */}
-          <div className="glow-card bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[2rem] p-6 flex flex-col gap-4 module-highlight max-h-[420px] overflow-y-auto profile-scroll">
-            {session.user.questionnaire?.length > 0 ? (
-              session.user.questionnaire.map((pref, i) => (
-                <div
-                  key={i}
-                  className="pref-card bg-white/[0.04] border border-white/[0.07] rounded-2xl p-4"
-                  style={{ animationDelay: `${i * 0.05}s` }}
-                >
-                  <p className="text-[9px] text-orange-400/70 font-black uppercase tracking-[0.25em] mb-2">
-                    {pref.questionId.replace(/([A-Z])/g, ' $1').trim()}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {Array.isArray(pref.answer) ? pref.answer.map((ans, idx) => (
-                      <span key={idx} className="tag-pill px-3 py-1 bg-orange-500/10 text-orange-300 border border-orange-500/20 rounded-lg text-[11px] font-bold capitalize">
-                        {ans}
-                      </span>
-                    )) : (
-                      <span className="text-white/70 text-sm font-bold capitalize">{pref.answer}</span>
-                    )}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] text-orange-400 font-bold uppercase tracking-widest px-1">Email Address</label>
+                  <input 
+                    type="email" 
+                    value={editData.email}
+                    onChange={(e) => setEditData({...editData, email: e.target.value})}
+                    className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500/50 transition-colors"
+                    placeholder="email@example.com"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] text-orange-400 font-bold uppercase tracking-widest px-1">Profile Image</label>
+                  <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-xl p-3">
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-white/10 flex-shrink-0 border border-white/10">
+                      {editData.image ? (
+                        <img src={editData.image} className="w-full h-full object-cover" alt="Preview" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-white/20 text-lg">📷</div>
+                      )}
+                    </div>
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      id="profile-upload"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                    <label htmlFor="profile-upload" className="cursor-pointer text-[11px] font-bold text-white/70 bg-white/10 px-4 py-2 rounded-lg hover:bg-white/20 transition-all active:scale-95">
+                      Upload from Device
+                    </label>
                   </div>
                 </div>
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center gap-3 py-10">
-                <span className="text-4xl opacity-30">🍽️</span>
-                <p className="text-white/20 text-sm font-medium">No preferences saved yet.</p>
-                <Link href="/preferences" className="text-orange-400 text-xs font-bold hover:text-orange-300 transition-colors">
-                  Set up preferences →
-                </Link>
-              </div>
-            )}
-          </div>
 
-          {/* Health Goals Highlight */}
-          {session.user.questionnaire?.find(q => q.questionId === 'healthGoals' || q.questionId === 'weightGoal') && (
-            <div className="fade-up-2 glow-card bg-gradient-to-br from-orange-500/[0.08] to-orange-800/[0.04] backdrop-blur-3xl border border-orange-500/15 rounded-[2rem] p-6 module-highlight">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="text-xl">🎯</span>
-                <p className="text-[10px] font-black text-orange-400 tracking-[0.25em] uppercase">Health Goals</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {(session.user.questionnaire
-                  ?.find(q => q.questionId === 'healthGoals' || q.questionId === 'weightGoal')
-                  ?.answer || []).map((goal, i) => (
-                  <span key={i} className="px-4 py-2 bg-orange-500/15 border border-orange-400/25 text-orange-200 rounded-xl text-sm font-bold capitalize">
-                    {goal}
-                  </span>
-                ))}
-              </div>
+                <div className="flex gap-2 mt-4">
+                  <button 
+                    type="button"
+                    onClick={() => setIsEditModalOpen(false)}
+                    className="flex-1 py-3 bg-white/5 border border-white/10 rounded-2xl text-white/60 text-xs font-bold hover:bg-white/10 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={isUpdatingProfile}
+                    className="flex-1 py-3 bg-gradient-to-r from-orange-500 to-orange-600 border border-orange-400/50 rounded-2xl text-white text-xs font-bold shadow-lg shadow-orange-500/20 hover:-translate-y-0.5 transition-all"
+                  >
+                    {isUpdatingProfile ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </form>
             </div>
-          )}
-
-          {/* Footer note */}
-          <p className="text-center text-white/15 text-xs font-medium px-2 fade-up-3">
-            Your preferences power personalized meal recommendations
-          </p>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

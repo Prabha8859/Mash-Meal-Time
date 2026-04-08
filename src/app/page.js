@@ -6,14 +6,20 @@ import FoodSpin from "@/components/FoodSpin";
 import LogoutButton from "@/components/LogoutButton";
 import ShapeGrid  from "@/components/FloatingLines";
 import { cookies } from "next/headers";
+import AddFoodForm from "@/components/AddFoodForm";
 
 async function getFoods(queryString = "") {
   try {
-    const baseUrl =
-      process.env.NEXTAUTH_URL ||
-      (process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : "http://localhost:3000");
+    // Robust base URL logic to prevent "Failed to fetch" errors
+    let baseUrl = process.env.NEXTAUTH_URL;
+    
+    if (!baseUrl) {
+      baseUrl = process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}` 
+        : "http://localhost:3000";
+    }
+    
+    if (!baseUrl.startsWith('http')) baseUrl = `http://${baseUrl}`;
 
     const url = new URL("/api/foods", baseUrl);
     if (queryString) url.search = queryString;
@@ -111,14 +117,19 @@ export default async function Home() {
     <div className="h-screen w-screen overflow-hidden relative bg-black">
 
       {/* ── LAYER 1: Background Video ── */}
+      {/* Ensure video-bg-03.mp4 or video-bg-04.mp4 actually exists in public/assets/img/ */}
       {/* <video
         autoPlay
         muted
         loop
         playsInline
-        src="/assets/img/video-bg-03.mp4"
+        src="/assets/img/video-bg-04.mp4" 
         className="absolute inset-0 w-full h-full object-cover z-0"
         style={{ filter: "brightness(0.4) saturate(0.9)" }}
+        onError={(e) => { 
+          e.target.style.display = 'none'; 
+          console.warn("Background video not found at the specified path."); 
+        }}
       /> */}
 
       {/* ── LAYER 2: Dark overlay so lines stay visible ── */}
@@ -148,7 +159,6 @@ export default async function Home() {
             Meal<span className="text-green-400">Mind</span>
           </span>
         </div>
-
         {/* Right Logout */}
         <LogoutButton />
       </header>

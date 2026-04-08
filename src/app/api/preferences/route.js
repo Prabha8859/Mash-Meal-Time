@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import User from '@/models/Users';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 export async function POST(req) {
   try {
@@ -11,10 +13,13 @@ export async function POST(req) {
       return NextResponse.json({ message: "Missing userId or answers." }, { status: 400 });
     }
 
-    console.log('Received preferences for userId:', userId);
-    console.log('Answers:', answers);
+    const session = await getServerSession(authOptions);
+    if (!session || session.user.id !== userId) {
+      return NextResponse.json({ message: "Unauthorized to update these preferences." }, { status: 403 });
+    }
 
-    const user = await User.findById(userId);
+    // Find user by the ID from the session, not just the request body
+    const user = await User.findById(session.user.id);
     if (!user) {
       return NextResponse.json({ message: "User not found." }, { status: 404 });
     }
@@ -44,9 +49,20 @@ export async function POST(req) {
     user.profileComplete = true;
 
     await user.save();
-        console.log('User preferences updated successfully for userId:', userId);
+    console.log('User preferences updated successfully for userId:', userId);
 
-    return NextResponse.json({ message: "Preferences Saved Successfully ✅" }, { status: 200 });
+    // Return updated user data for session refresh
+    return NextResponse.json({ 
+      message: "Preferences Saved Successfully ✅",
+      user: {
+        id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        profileComplete: user.profileComplete,
+        questionnaire: user.questionnaire,
+      }
+    }, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: "An error occurred while saving preferences." }, { status: 500 });
