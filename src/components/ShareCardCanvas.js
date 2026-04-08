@@ -167,11 +167,11 @@ export default function ShareCardCanvas({ food, user, onClose }) {
   }, [food, user, refreshKey]);
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/10 backdrop-blur-sm p-4 sm:p-6 md:p-10">
-      <div className=" border border-white backdrop-blur-2xl p-6 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex flex-col items-center gap-4 max-w-md sm:max-w-lg w-full animate-in zoom-in-95 duration-200">
-        <h2 className="text-slate-900 text-lg sm:text-xl font-bold">Generated Share Card</h2>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/10 backdrop-blur-sm p-4 sm:p-4 md:p-10 overflow-y-auto"> {/* Keep overflow-y-auto for responsiveness */}
+      <div className="border border-white/50 backdrop-blur-2xl  sm:p-4 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.2)] flex flex-col items-center gap-2 sm:gap-2 max-w-md sm:max-w-lg w-full max-h-[85vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+        <h2 className="text-white/80 text-900 text-lg sm:text-xl font-bold flex-shrink-0">Generated Share Card</h2>
         
-        <div className="w-full aspect-[4/5] bg-white/5 rounded-xl overflow-hidden border border-slate-200 flex items-center justify-center shadow-inner">
+        <div className=" aspect-[4/5] bg-white/5 rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center shadow-inner">
           {imgUrl ? (
             <img src={imgUrl} alt="Final card" className="w-full h-full object-contain" />
           ) : (

@@ -50,7 +50,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
         className="cs-root"
         style={{
           width: '90%', // Use a percentage for width on small screens
-          maxWidth: 'min(90vw, 450px)',
+          maxWidth: 'min(90vw, 400px)',
           height: 'auto',
           // maxHeight: '90vh',
           display: 'flex',
@@ -99,7 +99,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
             src={suggestedFood?.image}
             alt={suggestedFood?.name}
             style={{
-              width: '100%', height: '150px', // Adjusted height for smaller screens 
+              width: '100%', height: '220px', // Adjusted height for smaller screens 
               objectFit: 'cover',
               borderRadius: 16,
               marginBottom: 16,
