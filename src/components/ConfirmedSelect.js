@@ -57,11 +57,11 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
           flexDirection: 'column', position: 'relative',
           alignItems: 'center', justifyContent: 'center',
           gap: 0, padding: '24px', textAlign: 'center',
-          background: 'rgba(255, 255, 255, 0.05)', // Transparent white background
-          backdropFilter: 'blur(20px)', // Glass effect
-          border: '1px solid rgba(255, 255, 255, 0.18)', // Lighter border
+          background: 'var(--glass-bg)',
+          backdropFilter: 'blur(40px)',
+          border: '1px solid var(--glass-border)',
           borderRadius: 24, // Rounded borders
-          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)', // Box shadow for depth
+          boxShadow: 'var(--card-shadow)',
         }}
       >
 
@@ -74,12 +74,12 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
         {/* Heading */}
         <h2 style={{
           // fontFamily: "'Playfair Display', serif",
-          fontSize: 'clamp(28px, 8vw, 42px)', fontWeight: 900, color: '#fff',
+          fontSize: 'clamp(28px, 8vw, 42px)', fontWeight: 900, color: 'var(--text-main)',
           margin: '0 0 6px 0', lineHeight: 1.1,
         }}>
           Great Choice! {/* Adjusted font size for mobile */}
         </h2>
-        <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.7)', fontWeight: 500, margin: '0 0 0px 0' }}>
+        <p style={{ fontSize: 15, color: 'var(--text-muted)', fontWeight: 500, margin: '0 0 0px 0' }}>
           {selectedMode === "online" ? "We'll help you order this online 🛵" : "Time to get cooking! 🍳"}
         </p>
 
@@ -87,12 +87,12 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
         <div
           className="cs-food-img"
           style={{
-            background: 'rgba(255, 255, 255, 0.03)', 
+            background: 'var(--card-bg)', 
             borderRadius: 24,
             padding: 16,
             boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
             maxWidth: 280, width: '90%', // Use a percentage for width on small screens
-            border: '1px solid rgba(255, 255, 255, 0.1)', // Lighter border
+            border: '1px solid var(--glass-border)', 
           }}
         >
           <img
@@ -108,7 +108,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
           <h3 style={{
             fontFamily: "'Playfair Display', serif",
             fontSize: 20, fontWeight: 800,
-            color: '#fff', margin: '0 0 8px 0', // Adjusted font size for mobile
+            color: 'var(--text-main)', margin: '0 0 8px 0', // Adjusted font size for mobile
           }}>
             {suggestedFood?.name}
           </h3>
@@ -126,7 +126,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
         {/* Share Section */}
         <div style={{ marginTop: 8, width: '100%', maxWidth: 280 }}>
           <p style={{
-            fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.5)', // Adjusted font size for mobile
+            fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', // Adjusted font size for mobile
             marginBottom: 0, textTransform: 'uppercase', letterSpacing: '0.08em',
           }}>
             Share Your Discovery!
@@ -136,10 +136,10 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
               className="cs-btn"
               style={{
                 width: 36, height: 36, borderRadius: '50%',
-                background: 'rgba(255,255,255,0.08)', // Adjusted size for mobile 
-                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'var(--glass-bg)', // Adjusted size for mobile 
+                border: '1px solid var(--glass-border)',
                 fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
               }}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E1306C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
@@ -148,10 +148,10 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
               className="cs-btn"
               style={{
                 width: 36, height: 36, borderRadius: '50%',
-                background: 'rgba(255,255,255,0.08)', // Adjusted size for mobile 
-                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'var(--glass-bg)', // Adjusted size for mobile 
+                border: '1px solid var(--glass-border)',
                 fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
               }}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1877F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
@@ -160,10 +160,10 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
               className="cs-btn"
               style={{
                 width: 36, height: 36, borderRadius: '50%',
-                background: 'rgba(255,255,255,0.08)', // Adjusted size for mobile 
-                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'var(--glass-bg)', // Adjusted size for mobile 
+                border: '1px solid var(--glass-border)',
                 fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
               }}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -180,12 +180,12 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
             className="cs-btn"
             style={{
               flex: 1, padding: '8px', // Adjusted padding for mobile
-              background: 'rgba(255,255,255,0.1)', // Transparent background 
-              color: 'rgba(255,255,255,0.8)', // Lighter text color
+              background: 'var(--glass-bg)', // Transparent background 
+              color: 'var(--text-main)', // Lighter text color
               fontSize: 15, fontWeight: 700,
               borderRadius: 16,
-              border: '1px solid rgba(255,255,255,0.2)', // Lighter border
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)', // Adjusted shadow
+              border: '1px solid var(--glass-border)', // Lighter border
+              boxShadow: 'var(--card-shadow)', // Adjusted shadow
             }}
           >
             ← Start Over
@@ -195,12 +195,12 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
             className="cs-btn"
             style={{
              flex: 1, padding: '8px', // Adjusted padding for mobile 
-              background: 'rgba(255,255,255,0.1)', // Transparent background
-              color: 'rgba(255,255,255,0.8)', // Lighter text color
+              background: 'var(--glass-bg)', // Transparent background
+              color: 'var(--text-main)', // Lighter text color
               fontSize: 15, fontWeight: 700,
               borderRadius: 16,
-              border: '1px solid rgba(255,255,255,0.2)', // Lighter border
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              border: '1px solid var(--glass-border)', // Lighter border
+              boxShadow: 'var(--card-shadow)',
             }}
           >
           Generate Card

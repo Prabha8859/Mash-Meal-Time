@@ -6,6 +6,36 @@ export const GlobalStyles = () => (
   <style jsx global>{`
     @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@700;800&display=swap');
 
+    :root {
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --card-inner-bg: rgba(255, 255, 255, 0.9);
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --glass-bg: rgba(255, 255, 255, 0.7);
+      --glass-border: rgba(0, 0, 0, 0.33);
+        --card-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.08), inset 0 0 20px rgba(255,255,255,0.5);
+
+      --glow-opacity: 0.1;
+
+       --card-border: rgba(160, 160, 160, 1);
+     
+      --card-border: rgba(0, 0, 0, 0.08);
+    }
+
+    .dark {
+      --bg-color: #020617;
+      --card-bg: rgba(7, 24, 46, 0.8);
+      --card-inner-bg: rgba(3, 6, 10, 0.7);
+      --text-main: #ffffff;
+      --text-muted: rgba(255, 255, 255, 0.5);
+      --glass-bg: rgba(255, 255, 255, 0.11);
+      --glass-border: rgba(255, 255, 255, 0.24);
+      --card-shadow: 0 0 40px rgba(255, 255, 255, 0.1), inset 0 0 20px rgba(0,0,0,0.2);
+      --glow-opacity: 0.4;
+      --card-border: rgba(255, 255, 255, 0.15);
+    }
+
     /* --- Common Animations --- */
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes spin-loader { to { transform: rotate(360deg); } }
@@ -29,10 +59,10 @@ export const GlobalStyles = () => (
 
     /* --- Reusable Design Tokens --- */
     .glass-card {
-      background: rgba(255, 255, 255, 0.11) !important;
+      background: var(--glass-bg) !important;
       backdrop-filter: blur(32px);
       -webkit-backdrop-filter: blur(32px);
-      border: 1.5px solid rgba(255, 255, 255, 0.24);
+      border: 1.5px solid var(--glass-border);
       box-shadow: 0 12px 48px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.3);
     }
 

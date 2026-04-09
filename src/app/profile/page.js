@@ -3,6 +3,9 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import ShapeGrid from "@/components/FloatingLines";
 import { useState, useEffect } from "react";
+import RefreshButton from "@/components/RefreshButton";
+import ThemeToggle from "@/app/ThemeToggle";
+
 const tagColors = [
   "bg-orange-50 text-orange-600 border-orange-200",
   "bg-blue-50 text-blue-600 border-blue-200",
@@ -36,13 +39,13 @@ export default function ProfilePage() {
   }, [session]);
 
   if (status === "loading") return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
+    <div className="min-h-screen bg-[var(--bg-color)] flex items-center justify-center">
       <div className="w-10 h-10 border-2 border-t-orange-500 border-orange-500/20 rounded-full animate-spin" />
     </div>
   );
 
   if (!session) return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
+    <div className="min-h-screen bg-[var(--bg-color)] flex flex-col items-center justify-center gap-4">
       <span className="text-4xl">🔒</span>
       <Link href="/login" className="px-8 py-3 bg-orange-500 text-white rounded-xl font-bold text-sm">Login</Link>
     </div>
@@ -124,44 +127,47 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen relative bg-black overflow-x-hidden">
+    <div className="min-h-screen relative bg-[var(--bg-color)] transition-colors duration-500 overflow-x-hidden">
       <style>{`
         @keyframes whiteCardPulse {
           0%, 100% { box-shadow: 0 0 40px rgba(255, 255, 255, 0.15); }
           50% { box-shadow: 0 0 60px 10px rgba(255, 255, 255, 0.3); }
         }
         .food-engine-card {
-          background: #07182E;
+          background: transparent;
           position: relative;
           display: flex;
           flex-direction: column;
           overflow: hidden;
           border-radius: 1.5rem; /* Squared shape */
-          box-shadow: 0 0 40px rgba(255, 255, 255, 0.15); /* White shadow */
+          box-shadow: var(--card-shadow), 0 0 20px -5px var(--gradient-start), 0 0 20px -5px var(--gradient-end);
+          border: 1.5px solid var(--card-border);
+          backdrop-filter: blur(40px) saturate(210%);
           z-index: 0;
         }
 
         .food-engine-card::before {
           content: '';
           position: absolute;
-          width: 150px; /* Adjusted width for rotating border */
+          width: 200px;
           background-image: linear-gradient(180deg, var(--gradient-start), var(--gradient-end));
-          height: 160%;
-          top: -30%; /* Adjusted for smaller overall size */
+          height: 200%;
+          top: -50%;
           left: 35%;
           animation: rotBGimg 8s linear infinite;
           transition: all 0.2s linear;
-          z-index: -1; /* Place it behind ::after */
+          z-index: -2;
         }
 
         .food-engine-card::after {
           content: '';
           position: absolute;
-          background: rgba(7, 24, 46, 0.9); /* Slightly transparent inner dark background */
-          inset: 0px; /* Remove the inset to cover ::before */
-          border-radius: 1.5rem; /* Match card border-radius */
-          z-index: 0; /* Place it on top of ::before */
+          background: var(--bg-color);
+          inset: 3px;
+          border-radius: 1.3rem;
+          z-index: -1;
           backdrop-filter: blur(40px);
+          transition: all 0.4s ease;
         }
 
         @keyframes rotBGimg {
@@ -179,6 +185,42 @@ export default function ProfilePage() {
           animation: wiggle 0.6s ease-in-out 2;
           animation-delay: 0.8s;
         }
+
+        .header-engine-card {
+          background: var(--card-bg);
+          position: relative;
+          overflow: hidden;
+          z-index: 0;
+        }
+        .header-engine-card::before {
+          content: '';
+          position: absolute;
+          width: 250px;
+          background-image: linear-gradient(180deg, #10b981, #3b82f6);
+          height: 400%;
+          top: -100%;
+          left: 45%;
+          animation: rotBGimg 12s linear infinite;
+          z-index: -2;
+          opacity: 0.6;
+        }
+        .header-engine-card::after {
+          content: '';
+          position: absolute;
+          background: var(--card-inner-bg);
+          inset: 2px;
+          border-radius: 1rem;
+          z-index: -1;
+          backdrop-filter: blur(40px);
+        }
+
+        // .nav-side-item {
+        //   background: var(--card-bg);
+        //   border: 1px solid var(--glass-border);
+        //   backdrop-filter: blur(20px);
+        //   box-shadow: var(--card-shadow);
+        //   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        // }
       `}</style>
 
       {/* Original background — ShapeGrid only */}
@@ -189,13 +231,43 @@ export default function ProfilePage() {
       </div>
 
       {/* Topbar */}
-      <header className="fixed top-0 inset-x-0 z-30 flex items-center justify-between px-6 py-3 bg-black/60 backdrop-blur border-b border-white/[0.06]">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">🍽️</div>
-          <span className="font-black text-white hidden sm:block">Meal<span className="text-green-400">Mind</span></span>
-        </Link>
-        <Link href="/" className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors">✕</Link>
+      <header className="fixed top-2 inset-x-4 z-30">
+        <div className=" rounded-2xl ">
+          <div className="relative z-10 flex items-center justify-between px-5 py-2.5">
+            {/* Left: Logo side */}
+            <div className="flex items-center flex-1">
+              <Link href="/" className="flex items-center gap-2 group">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <span className="text-sm">🍽️</span>
+                </div>
+                <span className="font-black text-[var(--text-main)] hidden sm:block">Meal<span className="text-green-400">Mind</span></span>
+              </Link>
+            </div>
+
+            {/* Center: Title / Context */}
+            <div className="flex items-center justify-center">
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] whitespace-nowrap">User Profile</span>
+            </div>
+
+            {/* Right: Controls */}
+            <div className="flex items-center justify-end gap-3 flex-1">
+              <RefreshButton />
+              <ThemeToggle />
+            </div>
+          </div>
+        </div>
       </header>
+
+      {/* ── Side Navigation (Left side, below header) ── */}
+      <div className="fixed top-24 left-6 z-30">
+        <Link href="/" className="flex flex-col items-center gap-2 group">
+          <div className=" flex items-center justify-between ">
+            <span className="text-xl transition-transform group-hover:-translate-x-1">⬅️</span>
+             <span className="text-[9px] font-black uppercase tracking-[0.25em] text-[var(--text-muted)] group-hover:text-orange-500 transition-colors">Back</span>
+    
+          </div>
+             </Link>
+      </div>
 
       {/* Content */}
       <main className="relative z-10 min-h-screen flex items-start justify-center pt-16 pb-10 px-4">
@@ -204,9 +276,9 @@ export default function ProfilePage() {
           <div className="food-engine-card p-6 flex flex-col gap-6"
             style={{ '--gradient-start': 'rgb(0, 183, 255)', '--gradient-end': 'rgb(255, 48, 255)' }}>
             
-            <button 
+            <button
               onClick={() => setIsEditModalOpen(true)}
-              className="absolute top-5 right-5 z-20 w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-orange-400 hover:border-orange-500/30 hover:bg-white/10 transition-all shadow-lg edit-icon-wiggle" 
+              className="absolute top-5 right-5 z-20 w-8 h-8 rounded-full bg-white/5 border border-[var(--glass-border)] flex items-center justify-center text-[var(--text-muted)] hover:text-orange-400 hover:border-orange-500/30 hover:bg-white/10 transition-all shadow-lg edit-icon-wiggle"
               title="Edit Profile"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -223,14 +295,14 @@ export default function ProfilePage() {
                   : session.user.name?.charAt(0) ?? "U"}
               </div>
               <div className="text-center">
-                <p className="text-white font-black text-xl tracking-tight">{session.user.name ?? "Chef"}</p>
-                <p className="text-white/50 text-xs font-medium mt-1">{session.user.email}</p>
+                <p className="text-[var(--text-main)] font-black text-xl tracking-tight">{session.user.name ?? "Chef"}</p>
+                <p className="text-[var(--text-muted)] text-xs font-medium mt-1">{session.user.email}</p>
               </div>
             </div>
 
             {/* ── Section 2: Stats ── */}
             <div className="w-full grid grid-cols-2 gap-2 relative z-10">
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col items-center">
+              <div className="bg-white/5 border border-[var(--glass-border)] rounded-2xl p-3 flex flex-col items-center">
                 <div className="flex items-center gap-1.5 mb-1">
                   <div className="w-0.5 h-3 bg-orange-500 rounded-full" />
                   <p className="text-[10px] text-orange-400 font-bold uppercase tracking-widest">Goals</p>
@@ -238,10 +310,10 @@ export default function ProfilePage() {
                 {goals.length > 0 ? (
                   <p className="font-black text-orange-400 text-xs capitalize truncate leading-none">{goals[0]}</p>
                 ) : (
-                  <p className="font-black text-white/50 text-xs leading-none">—</p>
+                  <p className="font-black text-[var(--text-muted)] text-xs leading-none">—</p>
                 )}
               </div>
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col items-center">
+              <div className="bg-white/5 border border-[var(--glass-border)] rounded-2xl p-3 flex flex-col items-center">
                 <div className="flex items-center gap-1.5 mb-1">
                   <div className="w-0.5 h-3 bg-orange-500 rounded-full" />
                   <p className="text-[10px] text-orange-400 font-bold uppercase tracking-widest">Diet</p>
@@ -260,8 +332,8 @@ export default function ProfilePage() {
               >
                 <div className="w-1 h-4 bg-orange-500 rounded-full" />
                 <span className="text-[10px] font-black text-orange-400 uppercase tracking-widest">Saved Preferences</span>
-                <span className="text-white/30 text-[10px] font-bold ml-1">({q.length})</span>
-                <svg className={`w-3 h-3 text-white/30 ml-auto transition-transform duration-300 ${preferencesOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className="text-[var(--text-muted)] text-[10px] font-bold ml-1">({q.length})</span>
+                <svg className={`w-3 h-3 text-[var(--text-muted)] ml-auto transition-transform duration-300 ${preferencesOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
@@ -269,8 +341,8 @@ export default function ProfilePage() {
               {preferencesOpen && (
                 <div className="flex flex-col gap-3 max-h-60 overflow-y-auto pr-1 drawer-scroll">
                   {q.length > 0 ? q.map((pref, i) => (
-                    <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-3">
-                      <p className="text-[9px] text-white/30 font-bold uppercase tracking-widest mb-1.5">
+                    <div key={i} className="bg-white/5 border border-[var(--glass-border)] rounded-2xl p-3">
+                      <p className="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mb-1.5">
                         {pref.questionId.replace(/([A-Z])/g, " $1").trim()}
                       </p>
                       <div className="flex flex-wrap gap-1.5">
@@ -280,7 +352,7 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   )) : (
-                    <p className="text-white/30 text-xs text-center py-4 italic">No preferences saved</p>
+                    <p className="text-[var(--text-muted)] text-xs text-center py-4 italic">No preferences saved</p>
                   )}
                 </div>
               )}
@@ -288,15 +360,11 @@ export default function ProfilePage() {
 
             <div className="w-full h-px bg-white/10 relative z-10" />
 
-            <Link href="/add-food" className="w-full flex items-center justify-between px-5 py-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-orange-500/30 transition-all group relative z-10">
-              <span className="text-[11px] font-bold text-white/80 group-hover:text-orange-400 transition-colors uppercase tracking-wider">🍳 Contribute Recipe</span>
-              <span className="text-white/20 group-hover:text-white/50">→</span>
-            </Link>
 
             {/* ── Section 5: Actions ── */}
             <div className="flex flex-row gap-2 relative z-10">
-              <Link href="/preferences" className="flex-1 flex items-center justify-center px-4 py-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-orange-500/30 transition-all group">
-                <span className="text-[11px] font-bold text-white/80 group-hover:text-orange-400 transition-colors uppercase tracking-wider">⚙️ Settings</span>
+              <Link href="/preferences" className="flex-1 flex items-center justify-center px-4 py-3 bg-white/5 border border-[var(--glass-border)] rounded-2xl hover:bg-white/10 hover:border-orange-500/30 transition-all group">
+                <span className="text-[11px] font-bold text-[var(--text-main)] group-hover:text-orange-400 transition-colors uppercase tracking-wider">⚙️ Settings</span>
               </Link>
               <button onClick={() => signOut({ callbackUrl: "/login" })}
                 className="flex-1 py-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl text-[11px] font-bold hover:bg-red-500/20 transition-all uppercase tracking-wider">
@@ -304,7 +372,7 @@ export default function ProfilePage() {
               </button>
             </div>
             
-            <p className="text-center text-white/20 text-[10px] relative z-10">Personalizing your recommendations</p>
+            <p className="text-center text-[var(--text-muted)] text-[10px] relative z-10">Personalizing your recommendations</p>
           </div>
         </div>
       </main>
@@ -317,8 +385,8 @@ export default function ProfilePage() {
             
             <div className="relative z-10">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-white font-black text-xl tracking-tight">Update Profile</h3>
-                <button onClick={() => setIsEditModalOpen(false)} className="text-white/40 hover:text-white">✕</button>
+                <h3 className="text-[var(--text-main)] font-black text-xl tracking-tight">Update Profile</h3>
+                <button onClick={() => setIsEditModalOpen(false)} className="text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">✕</button>
               </div>
 
               <form onSubmit={handleUpdateProfile} className="flex flex-col gap-4">
@@ -328,7 +396,7 @@ export default function ProfilePage() {
                     type="text" 
                     value={editData.name}
                     onChange={(e) => setEditData({...editData, name: e.target.value})}
-                    className={`bg-white/5 border ${errors.name ? 'border-red-500' : 'border-white/10'} rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500/50 transition-colors`}
+                    className={`bg-white/5 border ${errors.name ? 'border-red-500' : 'border-[var(--glass-border)]'} rounded-xl px-4 py-2.5 text-[var(--text-main)] text-sm focus:outline-none focus:border-orange-500/50 transition-colors placeholder:opacity-30`}
                     placeholder="Your Name"
                   />
                   {errors.name && <p className="text-red-500 text-[10px] px-1">{errors.name}</p>}
@@ -340,7 +408,7 @@ export default function ProfilePage() {
                     type="email" 
                     value={editData.email}
                     onChange={(e) => setEditData({...editData, email: e.target.value})}
-                    className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500/50 transition-colors"
+                    className="bg-white/5 border border-[var(--glass-border)] rounded-xl px-4 py-2.5 text-[var(--text-main)] text-sm focus:outline-none focus:border-orange-500/50 transition-colors placeholder:opacity-30"
                     placeholder="email@example.com"
                   />
                 </div>
@@ -348,11 +416,11 @@ export default function ProfilePage() {
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[10px] text-orange-400 font-bold uppercase tracking-widest px-1">Profile Image</label>
                   <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-xl p-3">
-                    <div className="w-12 h-12 rounded-full overflow-hidden bg-white/10 flex-shrink-0 border border-white/10">
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-white/10 flex-shrink-0 border border-[var(--glass-border)]">
                       {editData.image ? (
                         <img src={editData.image} className="w-full h-full object-cover" alt="Preview" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white/20 text-lg">📷</div>
+                        <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)] text-lg">📷</div>
                       )}
                     </div>
                     <input 
@@ -362,7 +430,7 @@ export default function ProfilePage() {
                       onChange={handleImageChange}
                       className="hidden"
                     />
-                    <label htmlFor="profile-upload" className="cursor-pointer text-[11px] font-bold text-white/70 bg-white/10 px-4 py-2 rounded-lg hover:bg-white/20 transition-all active:scale-95">
+                    <label htmlFor="profile-upload" className="cursor-pointer text-[11px] font-bold text-[var(--text-main)] bg-white/10 px-4 py-2 rounded-lg hover:bg-white/20 transition-all active:scale-95">
                       Upload from Device
                     </label>
                   </div>
@@ -372,7 +440,7 @@ export default function ProfilePage() {
                   <button 
                     type="button"
                     onClick={() => setIsEditModalOpen(false)}
-                    className="flex-1 py-3 bg-white/5 border border-white/10 rounded-2xl text-white/60 text-xs font-bold hover:bg-white/10 transition-all"
+                    className="flex-1 py-3 bg-white/5 border border-[var(--glass-border)] rounded-2xl text-[var(--text-muted)] text-xs font-bold hover:bg-white/10 transition-all"
                   >
                     Cancel
                   </button>

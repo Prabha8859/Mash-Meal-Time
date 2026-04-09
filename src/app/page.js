@@ -6,7 +6,9 @@ import FoodSpin from "@/components/FoodSpin";
 import LogoutButton from "@/components/LogoutButton";
 import ShapeGrid  from "@/components/FloatingLines";
 import { cookies } from "next/headers";
+import ThemeToggle from "@/app/ThemeToggle";
 import AddFoodForm from "@/components/AddFoodForm";
+import RefreshButton from "@/components/RefreshButton";
 
 async function getFoods(queryString = "") {
   try {
@@ -114,7 +116,7 @@ export default async function Home() {
     finalParams.get("mealTiming")?.split(",")[0] || "Lunch";
 
   return (
-    <div className="h-screen w-screen overflow-hidden relative bg-black">
+    <div className="h-screen w-screen overflow-hidden relative bg-[var(--bg-color)] transition-colors duration-500">
 
       {/* ── LAYER 1: Background Video ── */}
       {/* Ensure video-bg-03.mp4 or video-bg-04.mp4 actually exists in public/assets/img/ */}
@@ -133,7 +135,7 @@ export default async function Home() {
       /> */}
 
       {/* ── LAYER 2: Dark overlay so lines stay visible ── */}
-      <div className="absolute inset-0 bg-black/40 z-[1]" />
+      <div className="absolute inset-0 bg-black/10 dark:bg-black/40 z-[1]" />
 
       <div className="absolute inset-0 z-[2]">
         <ShapeGrid 
@@ -155,12 +157,17 @@ export default async function Home() {
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-lg">
             <span className="text-xl">🍽️</span>
           </div>
-          <span className="text-white font-bold hidden md:block">
+          <span className="text-[var(--text-main)] font-bold hidden md:block">
             Meal<span className="text-green-400">Mind</span>
           </span>
         </div>
-        {/* Right Logout */}
-        <LogoutButton />
+        
+        {/* Right Side: Theme Switch and User Avatar */}
+        <div className="flex items-center gap-3">
+          <RefreshButton />
+          <ThemeToggle />
+          <LogoutButton />
+        </div>
       </header>
 
       {/* ── LAYER 5: FoodSpin (center, above lines) ── */}
