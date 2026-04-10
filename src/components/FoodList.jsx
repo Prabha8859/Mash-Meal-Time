@@ -14,8 +14,7 @@ export default function FoodList({ initialFoods, isFiltered }) {
     async function fetchFoods() {
       try {
         setLoading(true);
-        const res = await fetch('/api/foods');
-        console.log("API Response Status:", res);
+        const res = await fetch('/api/foods'); // No need to log status here
         if (!res.ok) {
           throw new Error('Failed to fetch foods');
         }
@@ -39,11 +38,6 @@ export default function FoodList({ initialFoods, isFiltered }) {
       // If parent does not provide data, fetch it.
       fetchFoods();
     }
-  }, [initialFoods]); // Re-run this logic if initialFoods prop changes.
-
-  useEffect(() => {
-    console.log("Updated Foods State:", foods);
-    console.log("Total Foods:", foods.length);
   }, [foods]);
 
   // Effect: Select a random food when the list updates
@@ -54,6 +48,9 @@ export default function FoodList({ initialFoods, isFiltered }) {
     } else {
       setSuggestedFood(null);
     }
+     console.log("Updated Foods State:", foods);
+    console.log("Total Foods:", foods.length);
+    
   }, [foods]); // Only run when the core foods list changes
 
   const handleNextSuggestion = () => {
@@ -87,7 +84,7 @@ export default function FoodList({ initialFoods, isFiltered }) {
 
   const handleConfirm = () => {
     if (suggestedFood) {
-      setIsConfirmed(true);
+      setIsConfirmed(true); // This state is used to disable buttons and change styling
       alert(`You have confirmed: ${suggestedFood.name}!`);
     }
   };

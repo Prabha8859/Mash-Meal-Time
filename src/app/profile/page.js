@@ -5,17 +5,11 @@ import ShapeGrid from "@/components/FloatingLines";
 import { useState, useEffect } from "react";
 import RefreshButton from "@/components/RefreshButton";
 import ThemeToggle from "@/app/ThemeToggle";
-
-const tagColors = [
-  "bg-orange-50 text-orange-600 border-orange-200",
-  "bg-blue-50 text-blue-600 border-blue-200",
-  "bg-green-50 text-green-600 border-green-200",
-  "bg-purple-50 text-purple-600 border-purple-200",
-];
+import { OPTIONS_MAP } from "@/lib/question";
+import UserPreferences from "@/components/UserPreferences";
 
 export default function ProfilePage() {
   const { data: session, status, update } = useSession();
-  const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [errors, setErrors] = useState({});
@@ -325,38 +319,11 @@ export default function ProfilePage() {
             <div className="w-full h-px bg-white/10 relative z-10" />
 
             {/* ── Section 3: Preferences (Dropdown) ── */}
-            <div className="flex flex-col gap-3 relative z-10">
-              <button 
-                onClick={() => setPreferencesOpen(!preferencesOpen)}
-                className="flex items-center gap-2 px-1 w-full text-left cursor-pointer group"
-              >
-                <div className="w-1 h-4 bg-orange-500 rounded-full" />
-                <span className="text-[10px] font-black text-orange-400 uppercase tracking-widest">Saved Preferences</span>
-                <span className="text-[var(--text-muted)] text-[10px] font-bold ml-1">({q.length})</span>
-                <svg className={`w-3 h-3 text-[var(--text-muted)] ml-auto transition-transform duration-300 ${preferencesOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              
-              {preferencesOpen && (
-                <div className="flex flex-col gap-3 max-h-60 overflow-y-auto pr-1 drawer-scroll">
-                  {q.length > 0 ? q.map((pref, i) => (
-                    <div key={i} className="bg-white/5 border border-[var(--glass-border)] rounded-2xl p-3">
-                      <p className="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mb-1.5">
-                        {pref.questionId.replace(/([A-Z])/g, " $1").trim()}
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {(Array.isArray(pref.answer) ? pref.answer : [pref.answer]).map((ans, j) => (
-                          <span key={j} className={`px-2 py-0.5 border rounded-lg text-[10px] font-extrabold capitalize ${tagColors[i % 4]}`}>{ans}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )) : (
-                    <p className="text-[var(--text-muted)] text-xs text-center py-4 italic">No preferences saved</p>
-                  )}
-                </div>
-              )}
-            </div>
+            <UserPreferences 
+              questionnaire={q} 
+              userId={session?.user?.id} 
+              updateSession={update} 
+            />
 
             <div className="w-full h-px bg-white/10 relative z-10" />
 

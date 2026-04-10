@@ -22,7 +22,7 @@ export default function IngredientDrawer({ visible, onClose, ingredients, active
       <div
         className="
           w-full max-w-[380px] h-[calc(100vh-140px)] mt-[100px] mb-[40px] mr-5 flex flex-col gap-6
-          bg-white/[0.03] backdrop-blur-3xl border border-white/15
+          bg-[var(--glass-bg)] backdrop-blur-3xl border border-[var(--glass-border)]
           px-6 py-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] rounded-[2.5rem]
         "
         style={{ animation: "slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1)" }}
@@ -30,16 +30,16 @@ export default function IngredientDrawer({ visible, onClose, ingredients, active
         {/* Header */}
         <div className="flex items-start justify-between flex-shrink-0">
           <div>
-            <p className="text-[10px] font-extrabold text-green-400 tracking-[0.2em] uppercase font-[Outfit]">
+            <p className="text-[10px] font-extrabold text-[var(--text-muted)] tracking-[0.2em] uppercase font-[Outfit]">
               What's in your kitchen?
             </p>
-            <h3 className="font-[Playfair_Display] text-xl sm:text-2xl font-black text-white mt-1 leading-tight">
+            <h3 className="font-[Playfair_Display] text-xl sm:text-2xl font-black text-[var(--text-main)] mt-1 leading-tight">
               {activeMealTiming ? activeMealTiming.charAt(0).toUpperCase() + activeMealTiming.slice(1) : 'Meal'} Ingredients
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/[0.08] border border-white/[0.15] text-white/55 flex items-center justify-center text-sm transition-all duration-200 hover:bg-white/15 hover:text-white hover:rotate-90 flex-shrink-0"
+            className="w-8 h-8 rounded-full bg-white/[0.08] border border-white/[0.15] text-[var(--text-main)] flex items-center justify-center text-sm transition-all duration-200 hover:bg-white/15 hover:text-white hover:rotate-90 flex-shrink-0"
           >
             ✕
           </button>
@@ -61,8 +61,8 @@ export default function IngredientDrawer({ visible, onClose, ingredients, active
                   border transition-all duration-[220ms] ease-[cubic-bezier(0.34,1.56,0.64,1)]
                   hover:scale-[1.04]
                   ${on
-                    ? "bg-green-500/30 border-green-400/50 text-white shadow-[0_0_15px_rgba(34,197,94,0.3)]"
-                    : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white/90"
+                    ? "bg-green-500/30 border-green-400/50 text-[var(--text-main)] shadow-[0_0_15px_rgba(34,197,94,0.3)]"
+                    : "bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-[var(--text-muted)] hover:bg-black/10 dark:hover:bg-white/10 hover:text-[var(--text-main)]"
                   }
                 `}
               >
@@ -85,7 +85,7 @@ export default function IngredientDrawer({ visible, onClose, ingredients, active
             w-full py-3.5 rounded-full flex-shrink-0
             font-[Outfit] text-[12px] font-extrabold tracking-[0.09em] uppercase
             bg-gradient-to-br from-green-500/35 to-green-700/28
-            border border-green-400/50 text-green-200
+            border border-green-400/50 text-[var(--text-main)]
             backdrop-blur-xl
             transition-all duration-[280ms] ease-[cubic-bezier(0.34,1.56,0.64,1)]
             hover:-translate-y-0.5 

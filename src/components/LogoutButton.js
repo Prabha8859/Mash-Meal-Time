@@ -28,7 +28,7 @@ export default function LogoutButton() {
     let loginTime = localStorage.getItem("loginTime");
 
     // If no loginTime found in storage, set it to now to ensure timer starts
-    if (!loginTime) {
+    if (!loginTime || isNaN(parseInt(loginTime, 10))) { // Added check for invalid loginTime
       console.log("Login time missing, initializing new session timer.");
       loginTime = Date.now().toString();
       localStorage.setItem("loginTime", loginTime);

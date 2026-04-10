@@ -135,7 +135,7 @@ export default async function Home() {
       /> */}
 
       {/* ── LAYER 2: Dark overlay so lines stay visible ── */}
-      <div className="absolute inset-0 bg-black/10 dark:bg-black/40 z-[1]" />
+      <div className="absolute inset-0 bg-black/5 dark:bg-black/10 z-[1]" />
 
       <div className="absolute inset-0 z-[2]">
         <ShapeGrid 

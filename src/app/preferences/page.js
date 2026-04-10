@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { DIET_OPTIONS, ALLERGY_OPTIONS, GOAL_OPTIONS, CUISINE_OPTIONS } from "@/lib/question";
 
 // ─── Particle dot ─────────────────────────────────────────────────────────────
 function Particle({ style }) {
@@ -185,39 +186,6 @@ export default function Preferences() {
     { width:4,  height:4,  top:"50%", left:"2%",  background:"rgba(167,243,208,0.6)",  animation:"floatC 11s ease-in-out infinite 3s",   filter:"blur(0.5px)" },
     { width:7,  height:7,  top:"18%", left:"52%", background:"rgba(253,186,116,0.30)", animation:"floatC 13s ease-in-out infinite 1.5s", filter:"blur(2px)"   },
     { width:3,  height:3,  top:"62%", left:"72%", background:"rgba(110,231,183,0.70)", animation:"floatA 5s ease-in-out infinite 4s",    filter:"blur(0.5px)" },
-  ];
-
-  const dietOptions = [
-    { value:"omnivore",    label:"Omnivore" },
-    { value:"vegetarian",  label:"Vegetarian" },
-    { value:"vegan",       label:"Vegan" },
-    { value:"keto",        label:"Keto" },
-    { value:"paleo",       label:"Paleo" },
-    { value:"gluten-free", label:"Gluten Free" },
-  ];
-  const allergyOptions = [
-    { value:"nuts",      label:"Nuts" },
-    { value:"dairy",     label:"Dairy" },
-    { value:"eggs",      label:"Eggs" },
-    { value:"soy",       label:"Soy" },
-    { value:"shellfish", label:"Shellfish" },
-    { value:"gluten",    label:"Gluten" },
-  ];
-  const goalOptions = [
-    { value:"weight-loss",  label:"Weight Loss" },
-    { value:"muscle-gain",  label:"Muscle Gain" },
-    { value:"energy",       label:"More Energy" },
-    { value:"heart-health", label:"Heart Health" },
-    { value:"gut-health",   label:"Gut Health" },
-    { value:"balanced",     label:"Stay Balanced" },
-  ];
-  const cuisineOptions = [
-    { value:"indian",   label:"Indian" },
-    { value:"italian",  label:"Italian" },
-    { value:"mexican",  label:"Mexican" },
-    { value:"japanese", label:"Japanese" },
-    { value:"american", label:"American" },
-    { value:"thai",     label:"Thai" },
   ];
 
   const canSave = diet !== "";
@@ -413,7 +381,7 @@ export default function Preferences() {
 
             <Section step="1" title="Diet Type" subtitle="Pick one that fits your lifestyle">
               <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 gap-3">
-                {dietOptions.map(o => (
+                {DIET_OPTIONS.map(o => (
                   <OptionCard key={o.value} type="radio" name="diet"
                     value={o.value} label={o.label}
                     selected={diet} onChange={e => setDiet(e.target.value)} />
@@ -423,7 +391,7 @@ export default function Preferences() {
 
             <Section step="2" title="Allergies & Restrictions" subtitle="Select all that apply">
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
-                {allergyOptions.map(o => (
+                {ALLERGY_OPTIONS.map(o => (
                   <OptionCard key={o.value} type="checkbox" name="allergies"
                     value={o.value} label={o.label}
                     selected={allergies} onChange={toggle(setAllergies)} />
@@ -433,7 +401,7 @@ export default function Preferences() {
 
             <Section step="3" title="Health Goals" subtitle="What are you working towards?">
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
-                {goalOptions.map(o => (
+                {GOAL_OPTIONS.map(o => (
                   <OptionCard key={o.value} type="checkbox" name="goals"
                     value={o.value} label={o.label}
                     selected={goals} onChange={toggle(setGoals)} />
@@ -443,7 +411,7 @@ export default function Preferences() {
 
             <Section step="4" title="Favourite Cuisines" subtitle="We'll prioritise these for you">
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
-                {cuisineOptions.map(o => (
+                {CUISINE_OPTIONS.map(o => (
                   <OptionCard key={o.value} type="checkbox" name="cuisine"
                     value={o.value} label={o.label}
                     selected={cuisine} onChange={toggle(setCuisine)} />

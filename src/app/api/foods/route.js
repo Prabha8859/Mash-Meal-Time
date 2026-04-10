@@ -48,7 +48,6 @@ export async function POST(req) {
   try {
     await connectDB();
     const FoodModel = (await import("@/models/Food")).default;
-
     const body = await req.json();
 
     console.log("Incoming body:", body); 
@@ -155,8 +154,6 @@ export async function GET(req) {
         }
       }
     }
-
-    console.log("Database Query:", JSON.stringify(query, null, 2));
 
      const foods = await FoodModel.find(query).lean();
 

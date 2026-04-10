@@ -1,5 +1,5 @@
 "use client";
-import React, { forwardRef, useState, useEffect } from 'react';
+import React, { forwardRef, useState, useEffect, useMemo } from 'react';
 
 const SpinWheel = forwardRef(({ 
   showResult, 
@@ -11,6 +11,16 @@ const SpinWheel = forwardRef(({
   disabled 
 }, ref) => {
   const [quickTip, setQuickTip] = useState("");
+  const [typedText, setTypedText] = useState(""); // State for typewriter text
+  const [showCursor, setShowCursor] = useState(true); // State for cursor visibility
+  const [isTypingDone, setIsTypingDone] = useState(false); // Track completion for button animation
+  const [isDeletingState, setIsDeletingState] = useState(false); // Track deleting phase for cursor styling
+
+  const fullTextLines = useMemo(() => [" Create your", " Bowl!"], []);
+  const typingSpeed = 100; // milliseconds per character
+  const lineDelay = 500; // milliseconds between lines
+  const initialDelay = 1000; // milliseconds before typing starts
+  const cursorBlinkSpeed = 500; // milliseconds for cursor blink
 
   const tips = [
     "💡 Pro Tip: Drinking water before meals helps improve digestion.",
@@ -27,6 +37,82 @@ const SpinWheel = forwardRef(({
     // Set a random tip on mount
     setQuickTip(tips[Math.floor(Math.random() * tips.length)]);
   }, []);
+
+  // Typewriter effect logic
+  useEffect(() => {
+    if (!selectedMode && !showResult && !spinning) { // Only run when in "No Mode State"
+      setTypedText(""); // Reset typed text when mode changes or result shows
+      setIsTypingDone(false);
+      setIsDeletingState(false);
+      let isDeleting = false;
+      let currentText = "";
+      let timeoutId;
+      let cursorIntervalId;
+
+      setShowCursor(true);
+      cursorIntervalId = setInterval(() => {
+        setShowCursor((prev) => !prev);
+      }, cursorBlinkSpeed);
+
+      const combinedText = fullTextLines.join("<br>");
+
+      const tick = () => {
+        if (!isDeleting) {
+          // Typing phase
+          if (currentText.length < combinedText.length) {
+            if (combinedText.substring(currentText.length).startsWith("<br>")) {
+              currentText += "<br>";
+            } else {
+              currentText += combinedText.charAt(currentText.length);
+            }
+            setTypedText(currentText);
+
+            if (currentText === combinedText) {
+              setIsTypingDone(true);
+              timeoutId = setTimeout(() => {
+                isDeleting = true;
+                setIsDeletingState(true);
+                tick();
+              }, 2500); // Wait at the end before erasing
+            } else {
+              timeoutId = setTimeout(tick, typingSpeed);
+            }
+          }
+        } else {
+          // Backspacing phase
+          if (currentText.length > 0) {
+            setIsTypingDone(false);
+            if (currentText.endsWith("<br>")) {
+              currentText = currentText.slice(0, -4);
+            } else {
+              currentText = currentText.slice(0, -1);
+            }
+            setTypedText(currentText);
+
+            if (currentText === "") {
+              isDeleting = false;
+              setIsDeletingState(false);
+              timeoutId = setTimeout(tick, 500); // Pause briefly when empty
+            } else {
+              timeoutId = setTimeout(tick, typingSpeed / 2); // Erase faster than typing
+            }
+          }
+        }
+      };
+
+      timeoutId = setTimeout(tick, initialDelay);
+
+      return () => {
+        clearTimeout(timeoutId);
+        clearInterval(cursorIntervalId);
+      };
+    } else {
+      setTypedText(""); // Clear text if not in the "No Mode State"
+      setShowCursor(false); // Ensure cursor is off when not in this state
+      setIsTypingDone(false);
+      setIsDeletingState(false);
+    }
+  }, [selectedMode, showResult, spinning]); // Dependencies for re-running the effect
 
   // Default image to show when not spinning and no result is yet available
   const DEFAULT_FOOD_IMAGE = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800";
@@ -50,6 +136,31 @@ const SpinWheel = forwardRef(({
         .spin-button-ready {
           animation: whiteGlowPulse 2s infinite ease-in-out;
         }
+        @keyframes selectModeFadeIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-select-mode {
+          animation: selectModeFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .typewriter-cursor {
+          animation: blink-caret 0.75s step-end infinite;
+          font-weight: normal; // Ensure cursor doesn't inherit bold
+          color: #fb923c; 
+          -webkit-text-fill-color: #fb923c !important; /* Override parent transparency */
+        }
+        .typewriter-cursor.is-deleting {
+          animation: blink-caret 0.3s step-end infinite; /* Faster pulse */
+          color: #ef4444; /* Red/Alert color for deleting */
+          -webkit-text-fill-color: #ef4444 !important;
+        }
+        @keyframes blink-caret {
+          from, to { opacity: 0; }
+          50% { opacity: 1; }
+        }
+
+
       `}</style>
 
       <div 
@@ -155,13 +266,18 @@ const SpinWheel = forwardRef(({
                         fontSize: 'clamp(18px, 5vw, 24px)',
                         fontWeight: 900,
                         lineHeight: 1.1,
+                        minHeight: '2.2em', // Prevents layout jump while typing
                         background: 'linear-gradient(to bottom, #fff, #fb923c)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
-                      }}>
-                        Create your<br />Bowl!
+                      }}> 
+                        <span dangerouslySetInnerHTML={{ __html: typedText }} />
+                        {showCursor && <span className={`typewriter-cursor ${isDeletingState ? 'is-deleting' : ''}`}>|</span>}
                       </p>
-                      <div className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
+                      <div className={`
+                        px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20
+                        ${isTypingDone ? 'animate-select-mode' : 'opacity-0'}
+                      `}>
                         <p className="text-[10px] text-white/80 font-bold uppercase tracking-widest">Select Mode</p>
                       </div>
                     </div>
