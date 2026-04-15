@@ -1,12 +1,13 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useSession } from "next-auth/react";
+import { Salad, Target, AlertCircle, Clock } from 'lucide-react';
 
 const FILTER_CONFIG = [
-  { id: "dietType", label: "Diet Type", emoji: "🥗", options: ["Veg", "Non-Veg", "Vegan"], selectionType: "single" },
-  { id: "healthGoals", label: "Health Goals", emoji: "🎯", options: ["Weight Loss", "Weight Gain", "Balanced", "Muscle Gain"], selectionType: "multi" },
-  { id: "allergies", label: "Allergies", emoji: "⚠️", options: ["No allergies", "Gluten", "Dairy", "Nuts", "Shellfish", "Eggs", "Onion", "Garlic"], selectionType: "single" },
-  { id: "mealTiming", label: "Meal Timing", emoji: "🕐", options: ["Breakfast", "Lunch", "Dinner", "Snacks"], selectionType: "single" },
+  { id: "dietType", label: "Diet Type", icon: Salad, options: ["Veg", "Non-Veg", "Vegan"], selectionType: "single" },
+  { id: "healthGoals", label: "Health Goals", icon: Target, options: ["Weight Loss", "Weight Gain", "Balanced", "Muscle Gain"], selectionType: "multi" },
+  { id: "allergies", label: "Allergies", icon: AlertCircle, options: ["No allergies", "Gluten", "Dairy", "Nuts", "Shellfish", "Eggs", "Onion", "Garlic"], selectionType: "single" },
+  { id: "mealTiming", label: "Meal Timing", icon: Clock, options: ["Breakfast", "Lunch", "Dinner", "Snacks"], selectionType: "single" },
 ];
 
 export default function FilterPanel({ currentParams, onApply, onClose }) {
@@ -77,8 +78,6 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap');
-        
         .fp-overlay {
           position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 10000;
           display: flex; justify-content: flex-end;
@@ -86,7 +85,7 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
           backdrop-filter: blur(8px);
           animation: fadeIn 0.3s ease-out forwards;
         }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; backdrop-filter: blur(0px); } to { opacity: 1; backdrop-filter: blur(8px); } }
 
         .fp-panel {
           width: 100%;
@@ -101,11 +100,20 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
           border-radius: 32px;
           display: flex; flex-direction: column;
           box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
-          animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         @keyframes slideIn {
-          from { transform: translateX(100%); }
-          to { transform: translateX(0); }
+          from { transform: translateX(100%) scale(0.98); opacity: 0; }
+          to { transform: translateX(0) scale(1); opacity: 1; }
+        }
+
+        .fp-category {
+          opacity: 0;
+          animation: categoryIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes categoryIn {
+          from { transform: translateY(20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
         }
 
         .fp-chip {
@@ -160,6 +168,7 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
               )}
               <button
                 onClick={onClose}
+                aria-label="Close filters"
                 className="fp-close flex-shrink-0" /* Added flex-shrink-0 */
                 style={{
                   width: 38, height: 38, borderRadius: '50%',
@@ -177,10 +186,10 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
 
           {/* Scrollable filter content */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 28 }}>
-            {FILTER_CONFIG.map((category) => (
-              <div key={category.id}>
+            {FILTER_CONFIG.map((category, idx) => (
+              <div key={category.id} className="fp-category" style={{ animationDelay: `${0.15 + idx * 0.08}s` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                  <span style={{ fontSize: 18 }}>{category.emoji}</span>
+                  <category.icon size={18} color="#f97316" strokeWidth={2.5} />
                   <h4 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 'clamp(13px, 3vw, 14px)', fontWeight: 700, color: '#ffffff', margin: 0, letterSpacing: '0.02em' }}>
                     {category.label}
                   </h4>

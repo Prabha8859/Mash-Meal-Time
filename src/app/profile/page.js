@@ -264,7 +264,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Content */}
-      <main className="relative z-10 min-h-screen flex items-start justify-center pt-16 pb-10 px-4">
+      <main className="relative z-10 min-h-screen flex items-end justify-center pt-16 pb-10 px-4">
         <div className="w-full max-w-md">
 
           <div className="food-engine-card p-6 flex flex-col gap-6"
@@ -374,8 +374,8 @@ export default function ProfilePage() {
                   <input 
                     type="email" 
                     value={editData.email}
-                    onChange={(e) => setEditData({...editData, email: e.target.value})}
-                    className="bg-white/5 border border-[var(--glass-border)] rounded-xl px-4 py-2.5 text-[var(--text-main)] text-sm focus:outline-none focus:border-orange-500/50 transition-colors placeholder:opacity-30"
+                    disabled
+                    className="bg-white/5 border border-[var(--glass-border)] rounded-xl px-4 py-2.5 text-[var(--text-muted)] text-sm cursor-not-allowed opacity-50"
                     placeholder="email@example.com"
                   />
                 </div>

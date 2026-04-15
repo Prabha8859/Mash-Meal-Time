@@ -163,7 +163,7 @@ export default async function Home() {
         </div>
         
         {/* Right Side: Theme Switch and User Avatar */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <RefreshButton />
           <ThemeToggle />
           <LogoutButton />

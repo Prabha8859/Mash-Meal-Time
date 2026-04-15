@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { DIET_OPTIONS, ALLERGY_OPTIONS, GOAL_OPTIONS, CUISINE_OPTIONS } from "@/lib/question";
+import { OPTIONS_MAP, DIET_OPTIONS, ALLERGY_OPTIONS, GOAL_OPTIONS, CUISINE_OPTIONS } from "@/lib/question";
 
 // ─── Particle dot ─────────────────────────────────────────────────────────────
 function Particle({ style }) {
@@ -121,7 +121,21 @@ export default function Preferences() {
   const [goals,     setGoals]     = useState([]);
   const [cuisine,   setCuisine]   = useState([]);
   const [saving,    setSaving]    = useState(false);
+  const [allergySearch, setAllergySearch] = useState("");
   const [toast,     setToast]     = useState({ show: false, message: "", type: "success" });
+
+  // Load initial preferences from session when it becomes available
+  useEffect(() => {
+    if (session?.user?.questionnaire) {
+      const q = session.user.questionnaire;
+      const getAns = (id) => q.find(p => p.questionId === id)?.answer;
+
+      setDiet(getAns("dietType")?.[0] || "");
+      setAllergies(getAns("allergies") || []);
+      setGoals(getAns("healthGoals") || getAns("weightGoal") || []);
+      setCuisine(getAns("cuisine") || []);
+    }
+  }, [session]);
 
   const toggle = (setter) => (e) => {
     const v = e.target.value;
@@ -135,6 +149,17 @@ export default function Preferences() {
       return () => clearTimeout(timer);
     }
   }, [toast.show]);
+
+  // Use OPTIONS_MAP as the primary source for consistency with other components
+  const allergyList = OPTIONS_MAP?.allergies || ALLERGY_OPTIONS || [];
+  const dietOpts = DIET_OPTIONS || OPTIONS_MAP?.dietType || [];
+  const goalOpts = GOAL_OPTIONS || OPTIONS_MAP?.healthGoals || [];
+  const cuisineOpts = CUISINE_OPTIONS || OPTIONS_MAP?.cuisine || [];
+
+  const filteredAllergies = allergyList.filter(opt => 
+    opt.label?.toLowerCase().includes(allergySearch.toLowerCase()) && 
+    !allergies.includes(opt.value)
+  );
 
   const handleSave = async () => {
     if (!diet || !session?.user?.id) return; // Ensure diet is selected and user ID exists
@@ -328,7 +353,7 @@ export default function Preferences() {
           style={{
             position:"relative", zIndex:10, margin: "0 auto", 
             width:"100%", maxWidth:"min(95vw, 700px)",
-            borderRadius:"3rem", padding:"clamp(20px, 5vw, 40px)",
+            borderRadius:"3rem", padding:"clamp(20px, 5vw, 25px)",
             background:"rgba(255, 255, 255, 0.08)",
             backdropFilter:"blur(5px) saturate(360%)",
             WebkitBackdropFilter:"blur(28px) saturate(160%)",
@@ -344,9 +369,9 @@ export default function Preferences() {
           }} />
 
           {/* ── Header ── */}
-          <div style={{ marginBottom:6 }}>
+          <div style={{ marginBottom:0 }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:5, justifyContent:"between" }}>
-              <div style={{
+              {/* <div style={{
                 width:30, height:30, borderRadius:14, fontSize:20,
                 background:"linear-gradient(135deg,#16a34a,#4ade80)",
                 display:"flex", alignItems:"center", justifyContent:"center",
@@ -356,7 +381,7 @@ export default function Preferences() {
               <span style={{
                 fontWeight:900, fontSize:14,
                 color:"rgba(255,255,255,0.45)", letterSpacing:"0.16em", textTransform:"uppercase", fontSize:"clamp(8px, 1.5vw, 10px)"
-              }}>MealMind</span>
+              }}>MealMind</span> */}
            
 
             <h1 style={{
@@ -377,11 +402,11 @@ export default function Preferences() {
           </div>
 
           {/* ── Sections ── */}
-          <div style={{ display:"flex", flexDirection:"column", gap:24 }}>
+          <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
 
             <Section step="1" title="Diet Type" subtitle="Pick one that fits your lifestyle">
               <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 gap-3">
-                {DIET_OPTIONS.map(o => (
+                {dietOpts.map(o => (
                   <OptionCard key={o.value} type="radio" name="diet"
                     value={o.value} label={o.label}
                     selected={diet} onChange={e => setDiet(e.target.value)} />
@@ -389,19 +414,86 @@ export default function Preferences() {
               </div>
             </Section>
 
-            <Section step="2" title="Allergies & Restrictions" subtitle="Select all that apply">
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
-                {ALLERGY_OPTIONS.map(o => (
-                  <OptionCard key={o.value} type="checkbox" name="allergies"
-                    value={o.value} label={o.label}
-                    selected={allergies} onChange={toggle(setAllergies)} />
-                ))}
+            <Section step="2" title="Allergies & Restrictions" subtitle="Search and add your allergies">
+              <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {/* Selected Tags Display */}
+                {allergies.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {allergies.map(val => {
+                      const opt = allergyList.find(o => o.value === val);
+                      return (
+                        <div key={val} style={{
+                          display: 'flex', alignItems: 'center', gap: 6,
+                          background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)',
+                          borderRadius: '12px', padding: '6px 12px', color: '#fff', fontSize: '11px', fontWeight: 800,
+                          animation: 'dotPop 0.3s ease-out', textTransform: 'capitalize'
+                        }}>
+                          {opt?.label || val}
+                          <button 
+                            onClick={() => setAllergies(prev => prev.filter(v => v !== val))}
+                            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '14px', marginLeft: 4, display: 'flex', alignItems: 'center' }}
+                          >✕</button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Better Searcher Input */}
+                <div style={{ position: 'relative' }}>
+                  <input 
+                    type="text"
+                    placeholder="Search allergies (e.g. Nuts, Dairy...)"
+                    value={allergySearch}
+                    onChange={(e) => setAllergySearch(e.target.value)}
+                    style={{
+                      width: '100%', padding: '14px 18px', borderRadius: '16px',
+                      background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                      color: '#fff', outline: 'none', fontSize: '13px', fontWeight: 700,
+                      transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)', fontFamily: 'inherit'
+                    }}
+                    onFocus={(e) => { e.target.style.borderColor = 'rgba(74,222,128,0.5)'; e.target.style.background = 'rgba(255,255,255,0.1)'; }}
+                    onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.background = 'rgba(255,255,255,0.06)'; }}
+                  />
+                  
+                  {/* Search Results Dropdown */}
+                  {allergySearch && (
+                    <div className="drawer-scroll" style={{
+                      position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
+                      marginTop: 8, background: 'rgba(20, 20, 20, 0.98)', backdropFilter: 'blur(30px)',
+                      borderRadius: '20px', border: '1px solid rgba(255,255,255,0.15)',
+                      maxHeight: '190px', overflowY: 'auto', padding: '6px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.8)'
+                    }}>
+                      {filteredAllergies.length > 0 ? (
+                        filteredAllergies.map(o => (
+                          <button key={o.value} 
+                            onClick={() => {
+                              setAllergies(prev => [...prev, o.value]);
+                              setAllergySearch("");
+                            }}
+                            style={{
+                              width: '100%', textAlign: 'left', padding: '12px 16px', borderRadius: '12px',
+                              background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer',
+                              fontSize: '13px', fontWeight: 700, transition: 'all 0.2s', textTransform: 'capitalize'
+                            }}
+                            onMouseEnter={(e) => { e.target.style.background = 'rgba(255,255,255,0.08)'; e.target.style.color = '#4ade80'; }}
+                            onMouseLeave={(e) => { e.target.style.background = 'transparent'; e.target.style.color = '#fff'; }}
+                          >
+                            {o.label}
+                          </button>
+                        ))
+                      ) : (
+                        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', padding: '16px', textAlign: 'center', fontWeight: 600 }}>No results found</p>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </Section>
 
             <Section step="3" title="Health Goals" subtitle="What are you working towards?">
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
-                {GOAL_OPTIONS.map(o => (
+                {goalOpts.map(o => (
                   <OptionCard key={o.value} type="checkbox" name="goals"
                     value={o.value} label={o.label}
                     selected={goals} onChange={toggle(setGoals)} />
@@ -411,7 +503,7 @@ export default function Preferences() {
 
             <Section step="4" title="Favourite Cuisines" subtitle="We'll prioritise these for you">
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
-                {CUISINE_OPTIONS.map(o => (
+                {cuisineOpts.map(o => (
                   <OptionCard key={o.value} type="checkbox" name="cuisine"
                     value={o.value} label={o.label}
                     selected={cuisine} onChange={toggle(setCuisine)} />

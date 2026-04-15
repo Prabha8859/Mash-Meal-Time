@@ -188,7 +188,7 @@ const SpinWheel = forwardRef(({
         <div
           ref={ref}
           className="absolute inset-[5px] rounded-full overflow-hidden w-[calc(100%-10px)] h-[calc(100%-10px)]" // Adjusted to fill parent
-          style={{
+          style={{willChange: 'transform', 
             background: 'conic-gradient(from 0deg, #f8fafc, #f1f5f9, #e2e8f0, #f8fafc)',
             zIndex: 1,
           }}
@@ -317,7 +317,7 @@ const SpinWheel = forwardRef(({
       </div>
 
       {/* ====================== POINTER (Sharp & Premium) ====================== */}
-      <div 
+      {/* <div 
         className="absolute z-50"
         style={{
           top: -20, // Adjusted for smaller overall size
@@ -333,18 +333,17 @@ const SpinWheel = forwardRef(({
           borderBottom: '20px solid #f97316', // Adjusted size
           filter: 'drop-shadow(0 8px 18px rgba(249,115,22,0.95))',
         }} />
-        {/* Pointer shine */}
         <div style={{
           position: 'absolute',
           top: 6,
           left: '50%',
-          transform: 'translateX(-50%)', // Adjusted for smaller overall size
+          transform: 'translateX(-50%)',
           width: 7,
           height: 10,
           background: 'rgba(255,255,255,0.7)',
           borderRadius: '50%',
         }} />
-      </div>
+      </div> */}
       </div>
     </div>
 

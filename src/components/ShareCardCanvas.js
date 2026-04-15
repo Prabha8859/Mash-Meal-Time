@@ -17,7 +17,7 @@ export default function ShareCardCanvas({ food, user, onClose }) {
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d', { alpha: true });
-    const W = 800, H = 1080;
+    const W = 900, H = 1130;
     canvas.width = W;
     canvas.height = H;
 
@@ -116,23 +116,23 @@ export default function ShareCardCanvas({ food, user, onClose }) {
       // User Info
       ctx.textAlign = 'center';
       ctx.fillStyle = style.text;
-      ctx.font = '900 42px "Syne", sans-serif';
+      ctx.font = '900 35px "Syne", sans-serif';
       ctx.fillText(user.name.toUpperCase(), W / 2, 138);
 
       ctx.fillStyle = style.muted;
-      ctx.font = '500 16px "Inter", sans-serif';
+      ctx.font = '500 25px "Inter", sans-serif';
       ctx.fillText(user.email.toLowerCase(), W / 2, 168);
 
       // Divider
       ctx.strokeStyle = style.muted + '44';
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
       ctx.moveTo(220, 185);
       ctx.lineTo(580, 185);
       ctx.stroke();
 
       // Food Image Container
-      const imgX = 72, imgY = 215, imgW = 656, imgH = 680, r = 36;
+      const imgX = 55, imgY = 215, imgW = 800, imgH = 800, r = 36;
 
       // Glow + borders
       ctx.save();
@@ -174,9 +174,9 @@ export default function ShareCardCanvas({ food, user, onClose }) {
       ctx.fill();
 
       ctx.fillStyle = '#fff';
-      ctx.font = '700 13px sans-serif';
+      ctx.font = '700 20px sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText(catText, imgX + 34, imgY + 42);
+      ctx.fillText(catText, imgX + 38, imgY + 48);
 
       const calText = `${food.nutrition?.calories || 320} KCAL`;
       const calW = ctx.measureText(calText).width + 32;
@@ -186,7 +186,7 @@ export default function ShareCardCanvas({ food, user, onClose }) {
       ctx.fill();
 
       ctx.fillStyle = style.bg;
-      ctx.font = '700 13px sans-serif';
+      ctx.font = '700 20px sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(calText, imgX + imgW - calW / 2 - 20, imgY + 42);
 
@@ -212,7 +212,7 @@ export default function ShareCardCanvas({ food, user, onClose }) {
 
       // Description
       ctx.fillStyle = style.gold;
-      ctx.font = '500 15px "Inter", sans-serif';
+      ctx.font = '500 20px "Inter"';
       ctx.fillText(
         (food.description || 'Rich · Creamy · Delicious').slice(0, 45),
         W / 2,
@@ -275,10 +275,6 @@ export default function ShareCardCanvas({ food, user, onClose }) {
 
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Syne:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap');
-      `}</style>
-
       <div className="cs-root" style={{
         width: '92%',
         maxWidth: '420px',
@@ -290,7 +286,7 @@ export default function ShareCardCanvas({ food, user, onClose }) {
         padding: '24px',
         boxShadow: 'var(--card-shadow)',
       }}>
-        <h2 className="text-2xl font-black text-center mb-4">Your Share Card</h2>
+        <h2 className="text-2xl font-black text-center mb-4 text-[var(--text-main)]">Your Share Card</h2>
 
         <div className="aspect-[4/5] w-full bg-black/5 dark:bg-white/5 rounded-3xl overflow-hidden border border-[var(--glass-border)] flex items-center justify-center relative">
           {imgUrl ? (
@@ -303,10 +299,10 @@ export default function ShareCardCanvas({ food, user, onClose }) {
           )}
         </div>
 
-        <div className="flex gap-3 mt-6">
+        <div className="flex gap-3 mt-2">
           <button
             onClick={onClose}
-            className="flex-1 py-3.5 text-sm font-bold rounded-2xl border border-[var(--glass-border)] hover:bg-white/10 transition-all"
+            className="flex-1 py-3 text-sm font-bold rounded-2xl border border-[var(--glass-border)] text-[var(--text-main)] hover:bg-black/5 dark:hover:bg-white/10 transition-all"
           >
             Cancel
           </button>
@@ -314,15 +310,15 @@ export default function ShareCardCanvas({ food, user, onClose }) {
           <button
             onClick={() => setRefreshKey(p => p + 1)}
             disabled={isGenerating}
-            className="flex-1 py-3.5 text-sm font-bold rounded-2xl border border-[var(--glass-border)] text-orange-500 hover:bg-orange-500/10 transition-all"
+            className="flex-1 py-2.5 text-sm font-bold rounded-2xl border border-[var(--glass-border)] text-orange-500 hover:bg-orange-500/5 dark:hover:bg-orange-500/10 transition-all"
           >
-            Shuffle Design
+            Shuffle 
           </button>
 
           <button
             onClick={handleDownload}
             disabled={!imgUrl || isGenerating}
-            className="flex-1 py-3.5 text-sm font-bold rounded-2xl bg-green-600 text-white hover:bg-green-700 transition-all disabled:opacity-50"
+            className="flex-1 py-2.5 text-sm font-bold rounded-2xl bg-green-600 text-white hover:bg-green-700 transition-all disabled:opacity-50"
           >
             Download
           </button>

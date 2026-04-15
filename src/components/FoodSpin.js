@@ -171,7 +171,7 @@ export default function FoodSpin({
   };
 
   const toggleIngredient = (id) => {
-    setCheckedIngredients((prev) => (prev[id] ? {} : { [id]: true }));
+    setCheckedIngredients((prev) => ({ ...prev, [id]: !prev[id] }));
     setFoods([]);
     resetSpinState();
   };
@@ -181,9 +181,7 @@ export default function FoodSpin({
     const selectedIngredients = Object.keys(checkedIngredients).filter(
       (k) => checkedIngredients[k],
     );
-    if (selectedIngredients.length > 0) {
-      await fetchFoodsForMode(selectedMode, selectedIngredients);
-    }
+    await fetchFoodsForMode(selectedMode, selectedIngredients);
   };
 
   const handleFilterApply = (newParams, expiryTime) => {
@@ -215,7 +213,8 @@ export default function FoodSpin({
     !loading &&
     !(
       selectedMode === "self-cooking" &&
-      Object.values(checkedIngredients).filter(Boolean).length === 0
+      Object.values(checkedIngredients).filter(Boolean).length === 0 &&
+      foods.length === 0
     );
 
   const clearFilters = () => {
@@ -354,7 +353,8 @@ export default function FoodSpin({
             loading={loading}
             disabled={
               selectedMode === "self-cooking" &&
-              Object.values(checkedIngredients).filter(Boolean).length === 0
+              Object.values(checkedIngredients).filter(Boolean).length === 0 &&
+              foods.length === 0
             }
           />
 

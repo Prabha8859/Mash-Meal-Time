@@ -10,8 +10,6 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap');
-
         .cs-root {
           font-family: 'DM Sans', sans-serif;
           animation: fadeUpRoot 0.5s ease forwards;
@@ -19,6 +17,14 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
         @keyframes fadeUpRoot {
           from { opacity: 0; transform: translateY(24px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+
+        .cs-share-transition {
+          animation: sharePopIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        @keyframes sharePopIn {
+          from { opacity: 0; transform: scale(0.92) translateY(30px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         .cs-food-img {
@@ -46,6 +52,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
         .cs-btn:active { transform: scale(0.97); }
       `}</style>
 
+      {!showShareCard ? (
       <div
         className="cs-root"
         style={{
@@ -89,9 +96,9 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
           style={{
             background: 'var(--card-bg)', 
             borderRadius: 24,
-            padding: 16,
+            padding: 12,
             boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-            maxWidth: 280, width: '90%', // Use a percentage for width on small screens
+            maxWidth: 320, width: '100%', // Use a percentage for width on small screens
             border: '1px solid var(--glass-border)', 
           }}
         >
@@ -99,16 +106,16 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
             src={suggestedFood?.image}
             alt={suggestedFood?.name}
             style={{
-              width: '100%', height: '220px', // Adjusted height for smaller screens 
+              width: '100%', height: '266px', // Adjusted height for smaller screens 
               objectFit: 'cover',
               borderRadius: 16,
-              marginBottom: 16,
+              // marginBottom: 16,
             }}
           />
           <h3 style={{
             fontFamily: "'Playfair Display', serif",
             fontSize: 20, fontWeight: 800,
-            color: 'var(--text-main)', margin: '0 0 8px 0', // Adjusted font size for mobile
+            color: 'var(--text-main)', margin: '0 ', // Adjusted font size for mobile
           }}>
             {suggestedFood?.name}
           </h3>
@@ -134,6 +141,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
           <div style={{ display: 'flex', justifyContent: 'center', gap: 16 }}>
             <button
               className="cs-btn"
+              aria-label="Share on Instagram"
               style={{
                 width: 36, height: 36, borderRadius: '50%',
                 background: 'var(--glass-bg)', // Adjusted size for mobile 
@@ -146,6 +154,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
             </button>
             <button
               className="cs-btn"
+              aria-label="Share on Facebook"
               style={{
                 width: 36, height: 36, borderRadius: '50%',
                 background: 'var(--glass-bg)', // Adjusted size for mobile 
@@ -158,6 +167,7 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
             </button>
             <button
               className="cs-btn"
+              aria-label="Share on WhatsApp"
               style={{
                 width: 36, height: 36, borderRadius: '50%',
                 background: 'var(--glass-bg)', // Adjusted size for mobile 
@@ -207,16 +217,17 @@ export default function ConfirmedSelection({ suggestedFood, selectedMode, onRest
           </button>
         </div>
       </div>
-
-      {showShareCard && (
-        <ShareCardCanvas 
-          user={{
-            name: session?.user?.name || "Prabha singh",
-            email: session?.user?.email || "prabha@mealmind.com"
-          }}
-           food={suggestedFood} 
-          onClose={() => setShowShareCard(false)}
-        />
+      ) : (
+        <div className="cs-share-transition">
+          <ShareCardCanvas 
+            user={{
+              name: session?.user?.name || "Prabha singh",
+              email: session?.user?.email || "prabha@mealmind.com"
+            }}
+             food={suggestedFood} 
+            onClose={() => setShowShareCard(false)}
+          />
+        </div>
       )}
     </>
   );

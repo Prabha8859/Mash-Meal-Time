@@ -4,6 +4,19 @@ export default function IngredientDrawer({ visible, onClose, ingredients, active
   if (!visible) return null;
 
   const selectedCount = Object.values(checkedIngredients).filter(Boolean).length;
+  const isAllSelected = selectedCount === ingredients.length;
+
+  const handleSelectAll = () => {
+    ingredients.forEach(item => {
+      if (!checkedIngredients[item.id]) onToggle(item.id);
+    });
+  };
+
+  const handleClearAll = () => {
+    ingredients.forEach(item => {
+      if (checkedIngredients[item.id]) onToggle(item.id);
+    });
+  };
 
   return (
     <div
@@ -48,6 +61,19 @@ export default function IngredientDrawer({ visible, onClose, ingredients, active
         {/* Divider */}
         <div className="h-px bg-gradient-to-r from-transparent via-white/15 to-transparent flex-shrink-0" />
 
+        {/* Quick Actions */}
+        <div className="flex items-center justify-between px-1">
+          <p className="text-[11px] font-bold text-[var(--text-muted)] italic">
+            {selectedCount === 0 ? "💡 No selection uses everything" : `${selectedCount} items selected`}
+          </p>
+          <button 
+            onClick={isAllSelected ? handleClearAll : handleSelectAll}
+            className="text-[10px] font-black uppercase tracking-wider text-green-400 hover:text-green-300 transition-colors cursor-pointer"
+          >
+            {isAllSelected ? "Clear All" : "Select All"}
+          </button>
+        </div>
+
         {/* Chips grid */}
         <div className="flex-1 overflow-y-auto drawer-scroll grid grid-cols-2 gap-3 content-start pr-1">
           {ingredients.map((item) => {
@@ -62,7 +88,7 @@ export default function IngredientDrawer({ visible, onClose, ingredients, active
                   hover:scale-[1.04]
                   ${on
                     ? "bg-green-500/30 border-green-400/50 text-[var(--text-main)] shadow-[0_0_15px_rgba(34,197,94,0.3)]"
-                    : "bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-[var(--text-muted)] hover:bg-black/10 dark:hover:bg-white/10 hover:text-[var(--text-main)]"
+                    : "bg-black/5 dark:bg-white/5 border-[var(--glass-border)] text-[var(--text-muted)] hover:bg-black/10 dark:hover:bg-white/10 hover:text-[var(--text-main)]"
                   }
                 `}
               >
@@ -87,12 +113,12 @@ export default function IngredientDrawer({ visible, onClose, ingredients, active
             bg-gradient-to-br from-green-500/35 to-green-700/28
             border border-green-400/50 text-[var(--text-main)]
             backdrop-blur-xl
-            transition-all duration-[280ms] ease-[cubic-bezier(0.34,1.56,0.64,1)]
-            hover:-translate-y-0.5 
-            active:scale-[0.97]
+            transition-all duration-[280ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] shadow-lg shadow-green-900/20
+            hover:-translate-y-1 hover:brightness-110
+            active:scale-[0.96]
           "
         >
-          Apply {selectedCount > 0 ? `(${selectedCount} selected)` : "Selection"}
+          {selectedCount > 0 ? `Apply Selected (${selectedCount})` : "Use All Ingredients"}
         </button>
       </div>
     </div>
