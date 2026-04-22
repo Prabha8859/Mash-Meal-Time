@@ -140,30 +140,42 @@ export async function GET(req) {
           query[key] = { $in: Array.from(searchValues) };
         }
       } else if (key === 'restrictedIngredients' || key === 'allergies') {
-        const excludedItems = processValues(values).filter(
+        const excludedItemsList = processValues(values).filter(
           (v) => !['no-allergies', 'no allergies', 'no'].includes(v),
         );
 
-        if (excludedItems.length > 0) {
+        if (excludedItemsList.length > 0) {
           if (!query.ingredients) query.ingredients = {};
-          // Optimization: Merge Nin arrays if both allergies and restrictedIngredients are provided
-          query.ingredients.$nin = [...(query.ingredients.$nin || []), ...excludedItems];
+          if (!query.ingredients.$nin) query.ingredients.$nin = [];
+          
+          excludedItemsList.forEach(i => {
+            const regex = new RegExp(`^${i}$`, 'i');
+            if (!query.ingredients.$nin.some(r => r.source === regex.source)) {
+              query.ingredients.$nin.push(regex);
+            }
+          });
         }
       } else if (key === 'ingredients') {
         const ingredientsList = processValues(values);
         if (ingredientsList.length > 0) {
-          query.ingredients = { $all: ingredientsList };
+          if (!query.ingredients) query.ingredients = {};
+          query.ingredients.$all = ingredientsList.map(i => new RegExp(`^${i}$`, 'i'));
         }
       } else if (key === 'search' || key === 'searchKeywords') {
         const searchTerms = processValues(values);
-
-        const noIngredients = searchTerms
+        const noIngredientsList = searchTerms
           .filter((searchTerm) => searchTerm.startsWith('no '))
           .map((searchTerm) => searchTerm.replace(/^no\s+/, '').trim());
 
-        if (noIngredients.length > 0) {
+        if (noIngredientsList.length > 0) {
           if (!query.ingredients) query.ingredients = {};
-          query.ingredients.$nin = noIngredients;
+          if (!query.ingredients.$nin) query.ingredients.$nin = [];
+          noIngredientsList.forEach(i => {
+            const regex = new RegExp(`^${i}$`, 'i');
+            if (!query.ingredients.$nin.some(r => r.source === regex.source)) {
+              query.ingredients.$nin.push(regex);
+            }
+          });
         }
 
         const normalTerms = searchTerms.filter((searchTerm) => !searchTerm.startsWith('no '));
@@ -200,6 +212,7 @@ export async function GET(req) {
 
     // For non-paginated requests, fetch all and filter in JS for better performance
     let foods;
+    let totalCount = 0;
 
     if (searchParams.get('page')) {
       totalCount = await FoodModel.countDocuments(query);
@@ -211,8 +224,8 @@ export async function GET(req) {
         .lean()
         .exec();
     } else {
-      // Simple approach: return all foods for fast response
-      foods = await FoodModel.find({}, projection).limit(50).lean().exec();
+      // Simple approach: return filtered foods for fast response
+      foods = await FoodModel.find(query, projection).limit(50).lean().exec();
       console.log("[API /api/foods] Returning all foods, found", foods.length, "foods");
     }
 

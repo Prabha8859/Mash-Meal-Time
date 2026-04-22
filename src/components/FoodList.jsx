@@ -14,8 +14,7 @@ export default function FoodList({ initialFoods, isFiltered }) {
     async function fetchFoods() {
       try {
         setLoading(true);
-        // Fetch with images and a higher limit for the "All Foods" view
-        const res = await fetch('/api/foods?fullImage=true&limit=20'); 
+        const res = await fetch('/api/foods'); // No need to log status here
         if (!res.ok) {
           throw new Error('Failed to fetch foods');
         }
@@ -29,12 +28,13 @@ export default function FoodList({ initialFoods, isFiltered }) {
         setLoading(false);
       }
     }
+  
 
-    if (initialFoods && initialFoods.length > 0) {
+    if (initialFoods !== undefined) {
       // If parent provides data (even an empty array), use it.
       setFoods(initialFoods);
       setLoading(false);
-    } else if (initialFoods === undefined) {
+    } else {
       // If parent does not provide data, fetch it.
       fetchFoods();
     }
@@ -104,8 +104,8 @@ export default function FoodList({ initialFoods, isFiltered }) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {foods.map((food) => (
               <div key={food._id} className="glass-card p-5 transition-all duration-300 flex flex-col group hover:translate-y-[-5px]">
-                <div className="relative overflow-hidden rounded-2xl bg-gray-800"> {/* Added bg-gray-800 for placeholder */}
-                  <img src={food.image || "https://placehold.co/600x400?text=No+Image"} alt={food.name} className="w-full h-48 object-cover rounded-md mb-4" />
+                <div className="relative overflow-hidden rounded-2xl">
+                  <img src={food.image} alt={food.name} className="w-full h-48 object-cover rounded-md mb-4" />
                   {food.category && (
                     <span className="absolute top-2 right-2 bg-black bg-opacity-60 text-white text-xs sm:text-sm font-semibold px-2 py-1 rounded-full capitalize"> {/* Responsive font size */}
                       {food.category}
@@ -156,7 +156,7 @@ export default function FoodList({ initialFoods, isFiltered }) {
                   ${isConfirmed && suggestedFood?._id !== food._id ? 'opacity-50' : ''}
                 `}
               >
-                <img src={food.image || "https://placehold.co/100x100?text=No+Image"} alt={food.name} className="w-24 h-24 object-cover rounded-md flex-shrink-0" />
+                <img src={food.image} alt={food.name} className="w-24 h-24 object-cover rounded-md flex-shrink-0" />
                 <div className="flex-grow">
                   <div className="flex justify-between items-start text-base sm:text-lg"> {/* Responsive font size */}
                     <h4 className="font-bold">{food.name}</h4>
