@@ -31,7 +31,7 @@ export default function FoodList({ initialFoods, isFiltered }) {
   
 
     if (initialFoods !== undefined) {
-      // If parent provides data (even an empty array), use it.
+      // If parent provides data (even an empty array []), use it and stop loading.
       setFoods(initialFoods);
       setLoading(false);
     } else {

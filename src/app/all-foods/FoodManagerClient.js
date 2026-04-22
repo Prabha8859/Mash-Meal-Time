@@ -90,16 +90,14 @@ export default function FoodManagerClient({ initialFoods, totalPages, currentPag
                   ))}
                 </div>
 
-                <div className="pt-4 border-t border-white/10 flex justify-between items-center">
-                  <span className="text-[10px] text-white/40 font-bold uppercase tracking-tighter">
-                    ⏱ {food.cookTime || 15} MINS
-                  </span>
-                  <button 
-                    className="text-xs font-black text-green-400 hover:text-green-300 uppercase tracking-widest"
-                    onClick={() => alert(JSON.stringify(food, null, 2))}
-                  >
-                    View Full Details →
-                  </button>
+                <div className="pt-4 border-t border-white/10 flex flex-wrap gap-2">
+                  {food.foodType?.map((type) => (
+                    <span key={type} className={`text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest border ${
+                      type === 'online' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : 'bg-orange-500/20 text-orange-400 border-orange-500/30'
+                    }`}>
+                      {type === 'online' ? 'Online Order' : ' Self Cooking'}
+                    </span>
+                  ))}
                 </div>
               </div>
             ))}

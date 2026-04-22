@@ -140,42 +140,30 @@ export async function GET(req) {
           query[key] = { $in: Array.from(searchValues) };
         }
       } else if (key === 'restrictedIngredients' || key === 'allergies') {
-        const excludedItemsList = processValues(values).filter(
+        const excludedItems = processValues(values).filter(
           (v) => !['no-allergies', 'no allergies', 'no'].includes(v),
         );
 
-        if (excludedItemsList.length > 0) {
+        if (excludedItems.length > 0) {
           if (!query.ingredients) query.ingredients = {};
-          if (!query.ingredients.$nin) query.ingredients.$nin = [];
-          
-          excludedItemsList.forEach(i => {
-            const regex = new RegExp(`^${i}$`, 'i');
-            if (!query.ingredients.$nin.some(r => r.source === regex.source)) {
-              query.ingredients.$nin.push(regex);
-            }
-          });
+          // Optimization: Merge Nin arrays if both allergies and restrictedIngredients are provided
+          query.ingredients.$nin = [...(query.ingredients.$nin || []), ...excludedItems];
         }
       } else if (key === 'ingredients') {
         const ingredientsList = processValues(values);
         if (ingredientsList.length > 0) {
-          if (!query.ingredients) query.ingredients = {};
-          query.ingredients.$all = ingredientsList.map(i => new RegExp(`^${i}$`, 'i'));
+          query.ingredients = { $all: ingredientsList };
         }
       } else if (key === 'search' || key === 'searchKeywords') {
         const searchTerms = processValues(values);
-        const noIngredientsList = searchTerms
+
+        const noIngredients = searchTerms
           .filter((searchTerm) => searchTerm.startsWith('no '))
           .map((searchTerm) => searchTerm.replace(/^no\s+/, '').trim());
 
-        if (noIngredientsList.length > 0) {
+        if (noIngredients.length > 0) {
           if (!query.ingredients) query.ingredients = {};
-          if (!query.ingredients.$nin) query.ingredients.$nin = [];
-          noIngredientsList.forEach(i => {
-            const regex = new RegExp(`^${i}$`, 'i');
-            if (!query.ingredients.$nin.some(r => r.source === regex.source)) {
-              query.ingredients.$nin.push(regex);
-            }
-          });
+          query.ingredients.$nin = noIngredients;
         }
 
         const normalTerms = searchTerms.filter((searchTerm) => !searchTerm.startsWith('no '));
@@ -224,9 +212,9 @@ export async function GET(req) {
         .lean()
         .exec();
     } else {
-      // Simple approach: return filtered foods for fast response
-      foods = await FoodModel.find(query, projection).limit(50).lean().exec();
-      console.log("[API /api/foods] Returning all foods, found", foods.length, "foods");
+     // Use the built 'query' and 'limit' even when not paginating
+      foods = await FoodModel.find(query, projection).limit(limit).lean().exec();
+      console.log("[API /api/foods] Querying foods, found", foods.length, "foods");
     }
 
     console.log("[API /api/foods] Query completed, found", foods.length, "foods");

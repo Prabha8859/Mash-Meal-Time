@@ -1,5 +1,5 @@
 export const DIET_OPTIONS = [
-  { value: "omnivore", label: "Omnivore" },
+  { value: "non-veg", label: "Non-Vegetarian" },
   { value: "vegetarian", label: "Vegetarian" },
   { value: "vegan", label: "Vegan" },
   { value: "keto", label: "Keto" },
