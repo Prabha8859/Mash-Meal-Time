@@ -41,64 +41,71 @@ export default async function Home() {
 
   const cookieStore = await cookies();
   const tempFilters = cookieStore.get("temp_filters");
-  let queryString = "";
+
+  const userAllergies = (user.questionnaire || [])
+    .find((item) => item.questionId === "allergies")
+    ?.answer || [];
+
+  const defaultParams = new URLSearchParams();
+  const FIELD_MAP = {
+    healthSuggestions: "healthGoals",
+    allergies: "restrictedIngredients",
+    weightGoal: "healthGoals",
+  };
+
+  if (user.questionnaire) {
+    user.questionnaire.forEach((pref) => {
+      const apiField = FIELD_MAP[pref.questionId] || pref.questionId;
+      const values = pref.answer;
+
+      if (!values || values.length === 0 || values[0] === "") return;
+
+      if (
+        (apiField === "restrictedIngredients" &&
+          ["no allergies", "no-allergies", "no"].includes(
+            values[0].toLowerCase()
+          )) ||
+        (apiField === "healthGoals" &&
+          pref.questionId === "healthSuggestions" &&
+          values[0].toLowerCase() === "no")
+      )
+        return;
+
+      let formattedValues = values.map((v) =>
+        v.toLowerCase().replace(/\s+/g, "-")
+      );
+
+      if (apiField === "dietType") {
+        formattedValues = formattedValues.map((v) =>
+          v === "vegetarian"
+            ? "veg"
+            : v === "non-vegetarian"
+            ? "non-veg"
+            : v
+        );
+      }
+
+      if (apiField === "foodType") return;
+
+      defaultParams.append(apiField, formattedValues.join(","));
+    });
+  }
+
+  if (!defaultParams.has("mealTiming"))
+    defaultParams.set("mealTiming", getAutoMealTiming());
+
+  if (!defaultParams.has("weather"))
+    defaultParams.set("weather", getAutoWeatherCondition());
+
+  const defaultQueryString = defaultParams.toString();
+  let queryString = defaultQueryString;
 
   if (tempFilters) {
-    queryString = tempFilters.value;
-  } else {
-    const params = new URLSearchParams();
-
-    const FIELD_MAP = {
-      healthSuggestions: "healthGoals",
-      allergies: "restrictedIngredients",
-      weightGoal: "healthGoals",
-    };
-
-    if (user.questionnaire) {
-      user.questionnaire.forEach((pref) => {
-        const apiField = FIELD_MAP[pref.questionId] || pref.questionId;
-        const values = pref.answer;
-
-        if (!values || values.length === 0 || values[0] === "") return;
-
-        if (
-          (apiField === "restrictedIngredients" &&
-            ["no allergies", "no-allergies", "no"].includes(
-              values[0].toLowerCase()
-            )) ||
-          (apiField === "healthGoals" &&
-            pref.questionId === "healthSuggestions" &&
-            values[0].toLowerCase() === "no")
-        )
-          return;
-
-        let formattedValues = values.map((v) =>
-          v.toLowerCase().replace(/\s+/g, "-")
-        );
-
-        if (apiField === "dietType") {
-          formattedValues = formattedValues.map((v) =>
-            v === "vegetarian"
-              ? "veg"
-              : v === "non-vegetarian"
-              ? "non-veg"
-              : v
-          );
-        }
-
-        if (apiField === "foodType") return;
-
-        params.append(apiField, formattedValues.join(","));
-      });
+    const tempParams = new URLSearchParams(tempFilters.value);
+    if (!Array.isArray(userAllergies) || userAllergies.length === 0) {
+      tempParams.delete("restrictedIngredients");
     }
-
-    if (!params.has("mealTiming"))
-      params.set("mealTiming", getAutoMealTiming());
-
-    if (!params.has("weather"))
-      params.set("weather", getAutoWeatherCondition());
-
-    queryString = params.toString();
+    queryString = tempParams.toString();
   }
 
   const foods = await getFoods(queryString);
@@ -163,7 +170,8 @@ export default async function Home() {
           initialFoods={foods}
           isFiltered={queryString.length > 0}
           mealTiming={mealTimingForComponent}
-          baseParams={queryString}
+          baseParams={defaultQueryString}
+          activeQueryString={queryString}
         />
       </div>
 

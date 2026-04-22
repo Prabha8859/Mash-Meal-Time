@@ -121,7 +121,6 @@ export default function Preferences() {
   const [goals,     setGoals]     = useState([]);
   const [cuisine,   setCuisine]   = useState([]);
   const [saving,    setSaving]    = useState(false);
-  const [allergySearch, setAllergySearch] = useState("");
   const [toast,     setToast]     = useState({ show: false, message: "", type: "success" });
 
   // Load initial preferences from session when it becomes available
@@ -156,11 +155,6 @@ export default function Preferences() {
   const goalOpts = GOAL_OPTIONS || OPTIONS_MAP?.healthGoals || [];
   const cuisineOpts = CUISINE_OPTIONS || OPTIONS_MAP?.cuisine || [];
 
-  const filteredAllergies = allergyList.filter(opt => 
-    opt.label?.toLowerCase().includes(allergySearch.toLowerCase()) && 
-    !allergies.includes(opt.value)
-  );
-
   const handleSave = async () => {
     if (!diet || !session?.user?.id) return; // Ensure diet is selected and user ID exists
 
@@ -190,14 +184,44 @@ export default function Preferences() {
 
       if (res.ok) {
         setToast({ show: true, message: "Preferences saved successfully! ✅", type: "success" });
-        // Update the session to reflect the new questionnaire and profileComplete status
-        await update({ user: { ...session.user, questionnaire: preferencesData, profileComplete: true } });
+        await update({ user: data.user });
         setTimeout(() => router.push("/"), 1500); // Redirect after short delay so they see success
       } else {
         setToast({ show: true, message: data.message || "Failed to save preferences.", type: "error" });
       }
     } catch (error) {
       setToast({ show: true, message: "A connection error occurred. Please try again.", type: "error" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSkip = async () => {
+    if (!session?.user?.id) return;
+    setSaving(true);
+
+    try {
+      const res = await fetch('/api/preferences', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: session.user.id,
+          answers: [{ questionId: 'preferenceSkipped', answer: ['true'] }],
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setToast({ show: true, message: 'Preferences skipped for now. You can update them anytime.', type: 'success' });
+        await update({ user: data.user });
+        router.push('/');
+      } else {
+        setToast({ show: true, message: data.message || 'Unable to skip preferences.', type: 'error' });
+      }
+    } catch (error) {
+      setToast({ show: true, message: 'A connection error occurred. Please try again.', type: 'error' });
     } finally {
       setSaving(false);
     }
@@ -414,80 +438,13 @@ export default function Preferences() {
               </div>
             </Section>
 
-            <Section step="2" title="Allergies & Restrictions" subtitle="Search and add your allergies">
-              <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {/* Selected Tags Display */}
-                {allergies.length > 0 && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {allergies.map(val => {
-                      const opt = allergyList.find(o => o.value === val);
-                      return (
-                        <div key={val} style={{
-                          display: 'flex', alignItems: 'center', gap: 6,
-                          background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)',
-                          borderRadius: '12px', padding: '6px 12px', color: '#fff', fontSize: '11px', fontWeight: 800,
-                          animation: 'dotPop 0.3s ease-out', textTransform: 'capitalize'
-                        }}>
-                          {opt?.label || val}
-                          <button 
-                            onClick={() => setAllergies(prev => prev.filter(v => v !== val))}
-                            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '14px', marginLeft: 4, display: 'flex', alignItems: 'center' }}
-                          >✕</button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Better Searcher Input */}
-                <div style={{ position: 'relative' }}>
-                  <input 
-                    type="text"
-                    placeholder="Search allergies (e.g. Nuts, Dairy...)"
-                    value={allergySearch}
-                    onChange={(e) => setAllergySearch(e.target.value)}
-                    style={{
-                      width: '100%', padding: '14px 18px', borderRadius: '16px',
-                      background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#fff', outline: 'none', fontSize: '13px', fontWeight: 700,
-                      transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)', fontFamily: 'inherit'
-                    }}
-                    onFocus={(e) => { e.target.style.borderColor = 'rgba(74,222,128,0.5)'; e.target.style.background = 'rgba(255,255,255,0.1)'; }}
-                    onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.background = 'rgba(255,255,255,0.06)'; }}
-                  />
-                  
-                  {/* Search Results Dropdown */}
-                  {allergySearch && (
-                    <div className="drawer-scroll" style={{
-                      position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
-                      marginTop: 8, background: 'rgba(20, 20, 20, 0.98)', backdropFilter: 'blur(30px)',
-                      borderRadius: '20px', border: '1px solid rgba(255,255,255,0.15)',
-                      maxHeight: '190px', overflowY: 'auto', padding: '6px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.8)'
-                    }}>
-                      {filteredAllergies.length > 0 ? (
-                        filteredAllergies.map(o => (
-                          <button key={o.value} 
-                            onClick={() => {
-                              setAllergies(prev => [...prev, o.value]);
-                              setAllergySearch("");
-                            }}
-                            style={{
-                              width: '100%', textAlign: 'left', padding: '12px 16px', borderRadius: '12px',
-                              background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer',
-                              fontSize: '13px', fontWeight: 700, transition: 'all 0.2s', textTransform: 'capitalize'
-                            }}
-                            onMouseEnter={(e) => { e.target.style.background = 'rgba(255,255,255,0.08)'; e.target.style.color = '#4ade80'; }}
-                            onMouseLeave={(e) => { e.target.style.background = 'transparent'; e.target.style.color = '#fff'; }}
-                          >
-                            {o.label}
-                          </button>
-                        ))
-                      ) : (
-                        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', padding: '16px', textAlign: 'center', fontWeight: 600 }}>No results found</p>
-                      )}
-                    </div>
-                  )}
-                </div>
+            <Section step="2" title="Allergies & Restrictions" subtitle="Select any that apply to you">
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
+                {allergyList.map(o => (
+                  <OptionCard key={o.value} type="checkbox" name="allergies"
+                    value={o.value} label={o.label}
+                    selected={allergies} onChange={toggle(setAllergies)} />
+                ))}
               </div>
             </Section>
 
@@ -528,6 +485,14 @@ export default function Preferences() {
                     }} />
                   : "Save My Preferences →"
                 }
+              </button>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={handleSkip}
+                className="w-full mt-3 py-3 text-sm sm:text-base rounded-2xl border border-white/15 bg-transparent text-white/80 hover:bg-white/5 transition-all"
+              >
+                Skip for now
               </button>
             </div>
 

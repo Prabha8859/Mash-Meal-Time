@@ -9,6 +9,7 @@ import { cookies } from "next/headers";
 import ThemeToggle from "@/app/ThemeToggle";
 import AddFoodForm from "@/components/AddFoodForm";
 import RefreshButton from "@/components/RefreshButton";
+import PreferenceReminder from "@/components/PreferenceReminder";
 
 async function getFoods(queryString = "") {
   try {
@@ -26,9 +27,13 @@ async function getFoods(queryString = "") {
     const url = new URL("/api/foods", baseUrl);
     if (queryString) url.search = queryString;
 
-    const res = await fetch(url.toString(), { cache: "no-store" });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 seconds timeout - API should be fast now 
+
+    const res = await fetch(url.toString(), { cache: "no-store", signal: controller.signal });
+    clearTimeout(timeoutId);
     if (!res.ok) {
-      console.error("API ERROR:", res.status);
+      console.error(`API ERROR: ${res.status} ${res.statusText}`);
       return [];
     }
 
@@ -44,76 +49,98 @@ export default async function Home() {
   if (!session || !session.user) redirect("/register");
 
   const user = session.user;
-  if (!user?.questionnaire || user?.questionnaire?.length === 0)
+  const userQuestionnaire = user?.questionnaire || [];
+  const hasPreferenceData = userQuestionnaire.some(
+    (pref) => pref.questionId !== 'preferenceSkipped' && Array.isArray(pref.answer) && pref.answer.length > 0,
+  );
+
+  if (!userQuestionnaire || userQuestionnaire.length === 0) {
     redirect("/preferences");
+  }
 
   const cookieStore = await cookies();
   const tempFilters = cookieStore.get("temp_filters");
-  let queryString = "";
 
-  if (tempFilters) {
-    queryString = tempFilters.value;
-  } else {
-    const params = new URLSearchParams();
+  const userAllergies = (user.questionnaire || [])
+    .find((item) => item.questionId === "allergies")
+    ?.answer || [];
 
-    const FIELD_MAP = {
-      healthSuggestions: "healthGoals",
-      allergies: "restrictedIngredients",
-      weightGoal: "healthGoals",
-    };
+  const defaultParams = new URLSearchParams();
+  const FIELD_MAP = {
+    healthSuggestions: "healthGoals",
+    allergies: "restrictedIngredients",
+    weightGoal: "healthGoals",
+  };
 
-    if (user.questionnaire) {
-      user.questionnaire.forEach((pref) => {
-        const apiField = FIELD_MAP[pref.questionId] || pref.questionId;
-        const values = pref.answer;
+  if (user.questionnaire) {
+    user.questionnaire.forEach((pref) => {
+      if (pref.questionId === "preferenceSkipped") return;
 
-        if (!values || values.length === 0 || values[0] === "") return;
+      const apiField = FIELD_MAP[pref.questionId] || pref.questionId;
+      const values = pref.answer;
 
-        if (
-          (apiField === "restrictedIngredients" &&
-            ["no allergies", "no-allergies", "no"].includes(
-              values[0].toLowerCase()
-            )) ||
-          (apiField === "healthGoals" &&
-            pref.questionId === "healthSuggestions" &&
-            values[0].toLowerCase() === "no")
-        )
-          return;
+      if (!values || values.length === 0 || values[0] === "") return;
 
-        let formattedValues = values.map((v) =>
-          v.toLowerCase().replace(/\s+/g, "-")
+      if (
+        (apiField === "restrictedIngredients" &&
+          ["no allergies", "no-allergies", "no"].includes(
+            values[0].toLowerCase()
+          )) ||
+        (apiField === "healthGoals" &&
+          pref.questionId === "healthSuggestions" &&
+          values[0].toLowerCase() === "no")
+      )
+        return;
+
+      let formattedValues = values.map((v) =>
+        v.toLowerCase().replace(/\s+/g, "-")
+      );
+
+      if (apiField === "dietType") {
+        formattedValues = formattedValues.map((v) =>
+          v === "vegetarian"
+            ? "veg"
+            : v === "non-vegetarian"
+            ? "non-veg"
+            : v
         );
+      }
 
-        if (apiField === "dietType") {
-          formattedValues = formattedValues.map((v) =>
-            v === "vegetarian"
-              ? "veg"
-              : v === "non-vegetarian"
-              ? "non-veg"
-              : v
-          );
-        }
+      if (apiField === "foodType") return;
 
-        if (apiField === "foodType") return;
-
-        params.append(apiField, formattedValues.join(","));
-      });
-    }
-
-    if (!params.has("mealTiming"))
-      params.set("mealTiming", getAutoMealTiming());
-
-    if (!params.has("weather"))
-      params.set("weather", getAutoWeatherCondition());
-
-    queryString = params.toString();
+      defaultParams.append(apiField, formattedValues.join(","));
+    });
   }
 
-  const foods = await getFoods(queryString);
+  if (!defaultParams.has("mealTiming"))
+    defaultParams.set("mealTiming", getAutoMealTiming());
+
+  if (!defaultParams.has("weather"))
+    defaultParams.set("weather", getAutoWeatherCondition());
+
+  // Do NOT request images here. It causes the 60s timeout crash.
+  // FoodSpin and FoodList will fetch images separately on the client side.
+
+  const defaultQueryString = defaultParams.toString();
+  let queryString = defaultQueryString;
+
+  if (tempFilters) {
+    const tempParams = new URLSearchParams(tempFilters.value);
+    if (!Array.isArray(userAllergies) || userAllergies.length === 0) {
+      tempParams.delete("restrictedIngredients");
+    }
+    queryString = tempParams.toString();
+  }
+
+  const foodData = await getFoods(queryString);
+  // Fix: Handle both { foods: [...] } and raw [...] responses
+  const foods = Array.isArray(foodData) ? foodData : (foodData?.foods || []);
 
   const finalParams = new URLSearchParams(queryString);
   const mealTimingForComponent =
     finalParams.get("mealTiming")?.split(",")[0] || "Lunch";
+  const baseParams = defaultQueryString;
+  const needsPreferences = !hasPreferenceData;
 
   return (
     <div className="h-screen w-screen overflow-hidden relative bg-[var(--bg-color)] transition-colors duration-500">
@@ -165,10 +192,12 @@ export default async function Home() {
         {/* Right Side: Theme Switch and User Avatar */}
         <div className="flex items-center gap-2">
           <RefreshButton />
-          <ThemeToggle />
+          {/* <ThemeToggle /> */}
           <LogoutButton />
         </div>
       </header>
+
+      <PreferenceReminder visible={needsPreferences} />
 
       {/* ── LAYER 5: FoodSpin (center, above lines) ── */}
       <div className="absolute inset-0 flex items-center justify-center z-10">
@@ -176,7 +205,8 @@ export default async function Home() {
           initialFoods={foods}
           isFiltered={queryString.length > 0}
           mealTiming={mealTimingForComponent}
-          baseParams={queryString}
+          baseParams={baseParams}
+          activeQueryString={queryString}
         />
       </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Input from "./commen/Input";
 import Button from "./commen/Button";
 import { MEAL_SPECIFIC_INGREDIENTS } from "@/lib/utils";
@@ -18,6 +19,10 @@ import {
 const SPICE_LEVEL_OPTIONS = ["mild", "medium", "spicy", "extra-spicy"];
 
 export default function AddFoodForm({ onAdded }) {
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
+  const isEditing = !!editId;
+
   const [form, setForm] = useState({
     name: "",
     image: null,          
@@ -42,8 +47,61 @@ export default function AddFoodForm({ onAdded }) {
     // occasion: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);  const [previewUrl, setPreviewUrl] = useState(null);
+  const [error, setError] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [existingImage, setExistingImage] = useState(null); // Store existing image for editing
+
+  // Fetch food data for editing
+  useEffect(() => {
+    if (isEditing) {
+      const fetchFood = async () => {
+        try {
+          setLoading(true);
+          const res = await fetch(`/api/foods/${editId}`);
+          if (!res.ok) {
+            throw new Error('Failed to fetch food data');
+          }
+          const food = await res.json();
+          console.log("Fetched food data:", food);
+          console.log("Food image:", food.image);
+          setForm({
+            name: food.name || "",
+            image: null, // Can't pre-fill file input
+            imageUrl: "", // Don't pre-fill URL input when editing
+            useUrl: false, // Default to upload mode when editing
+            description: food.description || "",
+            category: food.category || "",
+            mealTiming: food.mealTiming || [],
+            dietType: food.dietType ? food.dietType[0] : "", // Convert array to single value
+            healthGoals: food.healthGoals || [],
+            cuisine: food.cuisine || [],
+            mood: food.mood || [],
+            weather: food.weather || [],
+            foodStyle: food.foodStyle || [],
+            foodType: food.foodType ? food.foodType[0] : "online",
+            ingredients: food.ingredients || [],
+            spiceLevel: food.spiceLevel ? food.spiceLevel[0] : "",
+            calories: food.nutrition?.calories?.toString() || "",
+            protein: food.nutrition?.protein?.toString() || "",
+            carbs: food.nutrition?.carbs?.toString() || "",
+            fat: food.nutrition?.fat?.toString() || "",
+          });
+
+          // Set existing image for preview
+          if (food.image) {
+            setExistingImage(food.image);
+            setPreviewUrl(food.image);
+          }
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchFood();
+    }
+  }, [isEditing, editId]);
 
   // Flatten ingredients for the dropdown
   const allIngredientsList = React.useMemo(() => {
@@ -64,6 +122,11 @@ export default function AddFoodForm({ onAdded }) {
       setForm((f) => ({ ...f, [name]: checked }));
     } else {
       setForm((f) => ({ ...f, [name]: value }));
+    }
+
+    // Update preview for URL changes
+    if (name === "imageUrl") {
+      setPreviewUrl(value || null);
     }
   };
 
@@ -168,52 +231,65 @@ export default function AddFoodForm({ onAdded }) {
 
     // if (form.occasion) body.occasion = toArray(form.occasion);
 
-    // image handling: file -> base64, or if using URL use that directly
+    // image handling: file -> base64, or if using URL use that directly, or keep existing
     if (form.useUrl && form.imageUrl) {
       body.image = form.imageUrl;
     } else if (form.image instanceof File) {
       body.image = await fileToBase64(form.image);
+    } else if (isEditing && existingImage && !form.image && !form.imageUrl) {
+      // Keep existing image if no new image provided
+      body.image = existingImage;
+    } else if (isEditing && originalFood?.image && !form.image) {
+      // Preserve original image if editing and no new image provided
+      body.image = originalFood.image;
     }
 
     try {
-      const res = await fetch("/api/foods", {
-        method: "POST",
+      const method = isEditing ? "PUT" : "POST";
+      const url = isEditing ? `/api/foods/${editId}` : "/api/foods";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.message || "Failed to add food");
+        throw new Error(err.message || `Failed to ${isEditing ? 'update' : 'add'} food`);
       }
 
-      const newFood = await res.json();
-      setForm({
-        name: "",
-        image: "",
-        imageUrl: "",
-        useUrl: false,
-        description: "",
-        category: "",
-        mealTiming: [],
-        dietType: "",
-        healthGoals: [],
-        cuisine: [],
-        mood: [],
-        weather: [],
-        foodStyle: [],
-        foodType: "online",
-        ingredients: [],
-        spiceLevel: "",
-        calories: "",
-        protein: "",
-        carbs: "",
-        fat: "",
-        // occasion: "",
-      });
-      setPreviewUrl(null);
+      const updatedFood = await res.json();
 
-      if (onAdded) onAdded(newFood);
+      if (!isEditing) {
+        // Reset form only when adding new food
+        setForm({
+          name: "",
+          image: null,
+          imageUrl: "",
+          useUrl: false,
+          description: "",
+          category: "",
+          mealTiming: [],
+          dietType: "",
+          healthGoals: [],
+          cuisine: [],
+          mood: [],
+          weather: [],
+          foodStyle: [],
+          foodType: "online",
+          ingredients: [],
+          spiceLevel: "",
+          calories: "",
+          protein: "",
+          carbs: "",
+          fat: "",
+          // occasion: "",
+        });
+        setPreviewUrl(null);
+      }
+
+      if (onAdded) onAdded(updatedFood);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -225,7 +301,7 @@ export default function AddFoodForm({ onAdded }) {
 
   return (
     <form onSubmit={handleSubmit} className="mb-6 space-y-4">
-      <h2 className="text-xl font-semibold">Add New Food</h2>
+      <h2 className="text-xl font-semibold">{isEditing ? "Edit Food" : "Add New Food"}</h2>
 
       <Input
         label="Name"
@@ -265,7 +341,8 @@ export default function AddFoodForm({ onAdded }) {
               checked={!form.useUrl}
               onChange={() => {
                 setForm((f) => ({ ...f, useUrl: false, imageUrl: "" }));
-                setPreviewUrl(null);
+                // Show existing image if editing, otherwise clear preview
+                setPreviewUrl(isEditing && existingImage ? existingImage : null);
               }}
             />
             <span className="text-sm">Upload</span>
@@ -292,7 +369,7 @@ export default function AddFoodForm({ onAdded }) {
       ) : (
         <div>
           <label className="block text-sm font-medium" htmlFor="imageFile">
-            Upload Image
+            {isEditing ? "Upload New Image (leave empty to keep existing)" : "Upload Image"}
           </label>
           <input
             id="imageFile"
@@ -300,18 +377,28 @@ export default function AddFoodForm({ onAdded }) {
             accept="image/*"
             onChange={(e) => {
               if (e.target.files && e.target.files[0]) {
+                const file = e.target.files[0];
                 setForm((f) => ({ ...f, image: e.target.files[0] }));
                 setPreviewUrl(URL.createObjectURL(e.target.files[0]));
+              } else {
+                // If no file selected, show existing image again
+                setForm((f) => ({ ...f, image: null }));
+                setPreviewUrl(existingImage);
               }
             }}
             className="mt-1"
           />
           {previewUrl && (
-            <img
-              src={previewUrl}
-              alt="preview"
-              className="mt-2 w-32 h-32 object-cover rounded"
-            />
+            <div className="mt-2">
+              <img
+                src={previewUrl}
+                alt="preview"
+                className="w-32 h-32 object-cover rounded"
+              />
+              {isEditing && existingImage === previewUrl && (
+                <p className="text-xs text-gray-500 mt-1">Current image</p>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -513,7 +600,7 @@ export default function AddFoodForm({ onAdded }) {
       {error && <p className="text-red-600">{error}</p>}
 
       <Button type="submit" disabled={loading}>
-        {loading ? "Saving..." : "Add Food"}
+        {loading ? "Saving..." : (isEditing ? "Update Food" : "Add Food")}
       </Button>
     </form>
   );

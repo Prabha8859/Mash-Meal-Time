@@ -23,7 +23,7 @@ async function connectDB() {
 
     cached.promise = mongoose.connect(MONGODB_URI, {
       dbName: "mealmind_dev",
-      serverSelectionTimeoutMS: 10000,
+      // serverSelectionTimeoutMS: 10000,
     });
   }
 

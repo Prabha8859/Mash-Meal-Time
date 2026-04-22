@@ -2,40 +2,107 @@
 import React, { useState, useEffect } from 'react';
 import { useSession } from "next-auth/react";
 import { Salad, Target, AlertCircle, Clock } from 'lucide-react';
+import { OPTIONS_MAP } from '@/lib/question';
 
 const FILTER_CONFIG = [
-  { id: "dietType", label: "Diet Type", icon: Salad, options: ["Veg", "Non-Veg", "Vegan"], selectionType: "single" },
-  { id: "healthGoals", label: "Health Goals", icon: Target, options: ["Weight Loss", "Weight Gain", "Balanced", "Muscle Gain"], selectionType: "multi" },
-  { id: "allergies", label: "Allergies", icon: AlertCircle, options: ["No allergies", "Gluten", "Dairy", "Nuts", "Shellfish", "Eggs", "Onion", "Garlic"], selectionType: "single" },
-  { id: "mealTiming", label: "Meal Timing", icon: Clock, options: ["Breakfast", "Lunch", "Dinner", "Snacks"], selectionType: "single" },
+  {
+    id: "dietType",
+    label: "Diet Type",
+    icon: Salad,
+    options: OPTIONS_MAP.dietType.map((opt) => ({ label: opt.label, value: opt.value })),
+    selectionType: "single",
+  },
+  {
+    id: "healthGoals",
+    label: "Health Goals",
+    icon: Target,
+    options: OPTIONS_MAP.healthGoals.map((opt) => ({ label: opt.label, value: opt.value })),
+    selectionType: "multi",
+  },
+  {
+    id: "allergies",
+    label: "Allergies",
+    icon: AlertCircle,
+    options: [
+      { label: "No allergies", value: "no-allergies" },
+      ...OPTIONS_MAP.allergies.map((opt) => ({ label: opt.label, value: opt.value })),
+    ],
+    selectionType: "multi",
+  },
+  {
+    id: "mealTiming",
+    label: "Meal Timing",
+    icon: Clock,
+    options: [
+      { label: "Breakfast", value: "breakfast" },
+      { label: "Lunch", value: "lunch" },
+      { label: "Dinner", value: "dinner" },
+      { label: "Snacks", value: "snacks" },
+    ],
+    selectionType: "single",
+  },
 ];
 
 export default function FilterPanel({ currentParams, onApply, onClose }) {
   const [filters, setFilters] = useState({});
   const { data: session } = useSession();
 
+  const normalizeIncomingValue = (categoryId, value) => {
+    if (!value) return value;
+    const normalized = String(value).trim().toLowerCase();
+
+    if (categoryId === 'dietType') {
+      if (['veg', 'vegetarian', 'pure-vegetarian', 'pure vegetarian'].includes(normalized))
+        return 'vegetarian';
+      if (['non-veg', 'non-vegetarian', 'non vegetarian', 'omnivore'].includes(normalized))
+        return 'omnivore';
+      return normalized;
+    }
+
+    if (categoryId === 'allergies' && normalized === 'no-allergies') return 'no-allergies';
+
+    return normalized;
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(currentParams);
-    const initialFilters = {};
-    const userPreferences = session?.user?.questionnaire || {};
+    const questionnaire = Array.isArray(session?.user?.questionnaire)
+      ? session.user.questionnaire
+      : [];
 
-    FILTER_CONFIG.forEach(category => {
+    const initialFilters = {};
+
+    const getQuestionAnswer = (questionIds) => {
+      const item = questionnaire.find((q) => questionIds.includes(q.questionId));
+      return Array.isArray(item?.answer) ? item.answer : [];
+    };
+
+    FILTER_CONFIG.forEach((category) => {
       const paramKey = category.id === 'allergies' ? 'restrictedIngredients' : category.id;
       const paramValue = params.get(paramKey);
-      const prefKey = category.id === 'healthGoals' ? 'weightGoal' : category.id;
-      const prefValue = userPreferences[prefKey];
+      let values = [];
 
       if (paramValue) {
-        initialFilters[category.id] = paramValue.split(',');
-      } else if (prefValue && Array.isArray(prefValue) && prefValue.length > 0) {
-        initialFilters[category.id] = prefValue;
+        values = paramValue.split(',').filter(Boolean).map((value) => normalizeIncomingValue(category.id, value));
+      } else {
+        const mappedQuestionIds =
+          category.id === 'healthGoals'
+            ? ['healthGoals', 'weightGoal']
+            : [category.id];
+        values = getQuestionAnswer(mappedQuestionIds).map((value) => normalizeIncomingValue(category.id, value));
       }
+
+      initialFilters[category.id] = values.map((v) =>
+        String(v).trim().toLowerCase().replace(/\s+/g, '-')
+      );
     });
+
     setFilters(initialFilters);
   }, [currentParams, session]);
 
   const handleToggle = (categoryId, optionValue) => {
-    const normalizedValue = optionValue.toLowerCase().replace(/\s+/g, "-");
+    const rawValue = typeof optionValue === 'object' ? optionValue.value : optionValue;
+    const normalizedValue = String(rawValue).trim().toLowerCase().replace(/\s+/g, "-");
     setFilters(prev => {
       const currentValues = prev[categoryId] || [];
       const categoryConfig = FILTER_CONFIG.find(config => config.id === categoryId);
@@ -44,7 +111,15 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
       if (categoryConfig.selectionType === "single") {
         newValues = currentValues.includes(normalizedValue) ? [] : [normalizedValue];
       } else {
-        if (currentValues.includes(normalizedValue)) {
+        if (categoryId === 'allergies') {
+          if (normalizedValue === 'no-allergies') {
+            newValues = currentValues.includes('no-allergies') ? [] : ['no-allergies'];
+          } else {
+            newValues = currentValues.includes(normalizedValue)
+              ? currentValues.filter(v => v !== normalizedValue)
+              : [...currentValues.filter(v => v !== 'no-allergies'), normalizedValue];
+          }
+        } else if (currentValues.includes(normalizedValue)) {
           newValues = currentValues.filter(v => v !== normalizedValue);
         } else {
           newValues = [...currentValues, normalizedValue];
@@ -68,9 +143,19 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
       }
     });
 
+    const queryString = params.toString();
     const expirySeconds = 3600;
-    document.cookie = `temp_filters=${params.toString()}; path=/; max-age=${expirySeconds}`;
-    onApply(params.toString(), Date.now() + expirySeconds * 1000);
+
+    if (queryString) {
+      const expiresAt = Date.now() + expirySeconds * 1000;
+      document.cookie = `temp_filters=${queryString}; path=/; max-age=${expirySeconds}`;
+      document.cookie = `temp_filters_expires=${expiresAt}; path=/; max-age=${expirySeconds}`;
+      onApply(queryString, expiresAt);
+    } else {
+      document.cookie = "temp_filters=; path=/; max-age=0";
+      document.cookie = "temp_filters_expires=; path=/; max-age=0";
+      onApply("", null);
+    }
   };
 
   const activeCount = Object.values(filters).flat().filter(Boolean).length;
@@ -169,7 +254,7 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
               <button
                 onClick={onClose}
                 aria-label="Close filters"
-                className="fp-close flex-shrink-0" /* Added flex-shrink-0 */
+                className="fp-close shrink-0"
                 style={{
                   width: 38, height: 38, borderRadius: '50%',
                   background: 'rgba(255,255,255,0.05)', border: '1.5px solid rgba(255,255,255,0.1)',
@@ -204,11 +289,11 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {category.options.map(option => {
-                    const val = option.toLowerCase().replace(/\s+/g, "-");
-                    const isActive = filters[category.id]?.includes(val);
+                    const normalizedVal = String(option.value).trim().toLowerCase().replace(/\s+/g, "-");
+                    const isActive = filters[category.id]?.includes(normalizedVal);
                     return (
                       <button
-                        key={option}
+                        key={option.value}
                         onClick={() => handleToggle(category.id, option)}
                         className="fp-chip"
                         style={{
@@ -222,7 +307,7 @@ export default function FilterPanel({ currentParams, onApply, onClose }) {
                         }}
                       >
                         {isActive && <span style={{ marginRight: 5, fontSize: 11 }}>✓</span>}
-                        {option}
+                        {option.label}
                       </button>
                     );
                   })}

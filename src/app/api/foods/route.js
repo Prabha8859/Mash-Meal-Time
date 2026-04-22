@@ -1,8 +1,8 @@
+import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
-import Food from "@/models/Food";
+import FoodModel from "@/models/Food";
 
 export const dynamic = "force-dynamic"; // 🔥 MUST
-
 
 import {
   MEAL_TIMING_OPTIONS,
@@ -28,7 +28,8 @@ const FIELD_VALIDATION = {
   mood: MOOD_OPTIONS,
   weather: WEATHER_OPTIONS,
   foodType: FOOD_TYPE_OPTIONS,
-  spiceLevel: SPICE_LEVEL_OPTIONS
+  spiceLevel: SPICE_LEVEL_OPTIONS,
+  category: ["vegetarian", "non-vegetarian", "veg", "non-veg", "fast-food"]
 };
 
 const SYNONYM_MAP = {
@@ -47,12 +48,9 @@ const SYNONYM_MAP = {
 export async function POST(req) {
   try {
     await connectDB();
-    const FoodModel = (await import("@/models/Food")).default;
     const body = await req.json();
 
-    console.log("Incoming body:", body); 
-
-    const arrayFields = ['mealTiming', 'dietType', 'healthGoals', 'cuisine', 'mood', 'weather', 'foodStyle', 'searchKeywords', 'ingredients', 'restrictedIngredients', 'foodType', 'spiceLevel'];
+    const arrayFields = ['mealTiming', 'dietType', 'healthGoals', 'cuisine', 'mood', 'weather', 'foodStyle', 'searchKeywords', 'ingredients', 'restrictedIngredients', 'foodType', 'spiceLevel', 'items'];
     
     arrayFields.forEach(field => {
       if (body[field]) {
@@ -75,12 +73,14 @@ export async function POST(req) {
       }
     });
 
-  const newFood = await FoodModel.create(body);
+    // This operation is slow because the 'body' contains a 15MB image string.
+    // Consider using an external storage like Cloudinary or AWS S3.
+    const newFood = await FoodModel.create(body);
 
-    return Response.json(newFood, { status: 201 });
+    return NextResponse.json(newFood, { status: 201 });
   } catch (error) {
     console.error("POST ERROR:", error); // VERY IMPORTANT
-    return Response.json(
+    return NextResponse.json(
       { message: error.message },
       { status: 500 }
     );
@@ -88,18 +88,44 @@ export async function POST(req) {
 }
 
 export async function GET(req) {
+  const startTime = Date.now();
   try {
     await connectDB();
-     const FoodModel = (await import("@/models/Food")).default;
 
-    const { searchParams } = new URL(req.url);
+    // Ensure indexes exist for better performance
+    try {
+      await FoodModel.collection.createIndex({ dietType: 1 });
+      await FoodModel.collection.createIndex({ healthGoals: 1 });
+      await FoodModel.collection.createIndex({ cuisine: 1 });
+      await FoodModel.collection.createIndex({ mealTiming: 1 });
+      await FoodModel.collection.createIndex({ weather: 1 });
+      await FoodModel.collection.createIndex({ ingredients: 1 });
+      await FoodModel.collection.createIndex({ foodType: 1 });
+      console.log("Index creation attempted");
+    } catch (indexError) {
+      console.log("Index creation skipped or failed:", indexError.message);
+    }
+
+    const { searchParams } = req.nextUrl;
     const query = {};
 
-    for (const [key, value] of searchParams.entries()) {
+    // Pagination Params
+    const page = parseInt(searchParams.get("page")) || 1;
+    
+    const limit = Math.min(parseInt(searchParams.get("limit")) || 20, 50);
+    const skip = (page - 1) * limit;
+
+    const processValues = (values) =>
+      values
+        .flatMap(value => String(value).split(','))
+        .map(v => v.trim().toLowerCase())
+        .filter(Boolean);
+
+    for (const key of new Set(searchParams.keys())) {
+      const values = searchParams.getAll(key);
       // 1. Handle Enum Fields
       if (FIELD_VALIDATION[key]) {
-        const inputValues = value.split(',').map(v => v.trim().toLowerCase().replace(/\s+/g, '-'));
-        
+        const inputValues = processValues(values).map(v => v.replace(/\s+/g, '-'));
         const searchValues = new Set();
 
         inputValues.forEach(val => {
@@ -109,57 +135,98 @@ export async function GET(req) {
             searchValues.add(val);
           }
         });
-        
+
         if (searchValues.size > 0) {
           query[key] = { $in: Array.from(searchValues) };
         }
       } else if (key === 'restrictedIngredients' || key === 'allergies') {
-        // It checks if the `restrictedIngredients` field in the DB contains the user's allergies.
-        const ingredientsToLookFor = value.split(',')
-          .map(v => v.trim().toLowerCase())
-          .filter(v => v && v !== 'no-allergies' && v !== 'no allergies');
+        const excludedItems = processValues(values).filter(
+          (v) => !['no-allergies', 'no allergies', 'no'].includes(v),
+        );
 
-        if (ingredientsToLookFor.length > 0) {
-          //  URL is `allergies=garlic,onion`, it finds foods where `restrictedIngredients` contains BOTH.
-          query.restrictedIngredients = { $all: ingredientsToLookFor.map(ing => new RegExp(ing, 'i')) };
+        if (excludedItems.length > 0) {
+          if (!query.ingredients) query.ingredients = {};
+          // Optimization: Merge Nin arrays if both allergies and restrictedIngredients are provided
+          query.ingredients.$nin = [...(query.ingredients.$nin || []), ...excludedItems];
         }
       } else if (key === 'ingredients') {
-        // 2. ingredients' parameter for self-cooking
-        const ingredientsList = value.split(',')
-          .map(v => v.trim().toLowerCase())
-          .filter(v => v); 
-
+        const ingredientsList = processValues(values);
         if (ingredientsList.length > 0) {
-          if (!query.ingredients) {
-            query.ingredients = {};
-          }
-          query.ingredients.$all = ingredientsList.map(ing => new RegExp(ing, 'i'));
+          query.ingredients = { $all: ingredientsList };
         }
       } else if (key === 'search' || key === 'searchKeywords') {
-        const searchTerm = value.trim().toLowerCase();
-        // NO FILTER
-        if (searchTerm.startsWith("no ")) {
-          const ingredient = searchTerm.replace("no ", "").trim();
-          if (!query.ingredients) {
-            query.ingredients = {};
-          }
-          if (!query.ingredients.$nin) query.ingredients.$nin = [];
-          query.ingredients.$nin.push(new RegExp(ingredient, 'i'));
-        } else {
-          query.$or = [
+        const searchTerms = processValues(values);
+
+        const noIngredients = searchTerms
+          .filter((searchTerm) => searchTerm.startsWith('no '))
+          .map((searchTerm) => searchTerm.replace(/^no\s+/, '').trim());
+
+        if (noIngredients.length > 0) {
+          if (!query.ingredients) query.ingredients = {};
+          query.ingredients.$nin = noIngredients;
+        }
+
+        const normalTerms = searchTerms.filter((searchTerm) => !searchTerm.startsWith('no '));
+        if (normalTerms.length > 0) {
+          query.$or = normalTerms.flatMap((searchTerm) => [
             { name: { $regex: searchTerm, $options: 'i' } },
             { searchKeywords: { $regex: searchTerm, $options: 'i' } },
-            { ingredients: { $regex: searchTerm, $options: 'i' } }
-          ];
+          ]);
         }
       }
     }
 
-     const foods = await FoodModel.find(query).lean();
+     const projection = {
+      name: 1,
+      image: 1, // Always include image
+      description: 1,
+      category: 1,
+      dietType: 1,
+      cuisine: 1,
+      healthGoals: 1,
+      foodType: 1,
+      mealTiming: 1,
+    };
 
-    return Response.json(foods);
+    // Add extra fields if requested
+    if (searchParams.get('details') === 'true' || searchParams.get('fullImage') === 'true') {
+      projection.ingredients = 1;
+      projection.mood = 1;
+      projection.weather = 1;
+      projection.foodStyle = 1;
+      projection.price = 1;
+      projection.cookTime = 1;
+    };
+
+    // For non-paginated requests, fetch all and filter in JS for better performance
+    let foods;
+
+    if (searchParams.get('page')) {
+      totalCount = await FoodModel.countDocuments(query);
+      console.log("[API /api/foods] Total documents matching query:", totalCount);
+
+      foods = await FoodModel.find(query, projection)
+        .skip(skip)
+        .limit(limit)
+        .lean()
+        .exec();
+    } else {
+      // Simple approach: return all foods for fast response
+      foods = await FoodModel.find({}, projection).limit(50).lean().exec();
+      console.log("[API /api/foods] Returning all foods, found", foods.length, "foods");
+    }
+
+    console.log("[API /api/foods] Query completed, found", foods.length, "foods");
+    console.log(`[API /api/foods] Total time: ${Date.now() - startTime}ms`);
+
+    if (searchParams.get('page')) {
+      const totalPages = Math.ceil(totalCount / limit);
+      return NextResponse.json({ foods, totalPages, totalCount, page }, { status: 200 });
+    } else {
+      return NextResponse.json(foods, { status: 200 });
+    }
   } catch (error) {
     console.error("GET ERROR:", error);
-    return Response.json({ message: error.message }, { status: 500 });
+    return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }

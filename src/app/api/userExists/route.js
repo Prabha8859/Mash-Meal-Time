@@ -6,7 +6,11 @@ export async function POST(req) {
   try {
     await connectDB();
     const { email } = await req.json();
-    const user = await User.findOne({ email }).select('_id');
+    if (!email) {
+      return NextResponse.json({ message: 'Email is required.' }, { status: 400 });
+    }
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail }).select('_id');
     return NextResponse.json({ user });
   } catch (error) {
     console.log(error);

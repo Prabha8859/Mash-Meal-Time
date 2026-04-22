@@ -21,18 +21,23 @@ export default function Register() {
     }
 
     try {
+      const normalizedEmail = email.trim().toLowerCase();
       // Check if user already exists
       const resUserExists = await fetch('/api/userExists', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: normalizedEmail }),
       });
 
-      const { user } = await resUserExists.json();
+      const userExistsData = await resUserExists.json();
+      if (!resUserExists.ok) {
+        setError(userExistsData.message || 'Unable to validate email.');
+        return;
+      }
 
-      if (user) {
+      if (userExistsData.user) {
         setError('User with this email already exists.');
         return;
       }
@@ -45,26 +50,27 @@ export default function Register() {
         },
         body: JSON.stringify({
           name,
-          email,
+          email: normalizedEmail,
           password,
         }),
       });
 
       if (res.ok) {
         const signInRes = await signIn("credentials", {
-          email,
+          email: normalizedEmail,
           password,
           redirect: false,
         });
 
         if (!signInRes?.error) {
-          router.push("/");
+          router.push("/preferences");
         } else {
           setError("Registration successful, but login failed.");
         }
-} else {
-  setError("User registration failed.");
-}
+      } else {
+        const errorResponse = await res.json();
+        setError(errorResponse.message || "User registration failed.");
+      }
     } catch (error) {
       console.error('Error during registration: ', error);
       setError('Something went wrong.');
@@ -79,7 +85,7 @@ export default function Register() {
           className="w-full h-full object-cover opacity-40 scale-105"
           alt="Register background"
         />
-        <div className="absolute inset-0 bg-gradient-to-tr from-orange-950/40 via-black/10 to-black/10" />
+        <div className="absolute inset-0 bg-linear-to-tr from-orange-950/40 via-black/10 to-black/10" />
       </div>
 
       <div className="glass-card relative z-10 w-full max-w-md p-8 sm:p-6 rounded-[3rem] flex flex-col shadow-2xl border border-white/10 backdrop-blur-xl">
@@ -95,7 +101,7 @@ export default function Register() {
               onChange={(e) => setName(e.target.value)} 
               type="text" 
               placeholder="Your Name" 
-              className="w-full bg-white/[0.05] border border-white/10 px-4 py-3 rounded-2xl text-white  focus:outline-none focus:border-orange-400/50 focus:bg-white/[0.08] transition-all"
+              className="w-full bg-white/5 border border-white/10 px-4 py-3 rounded-2xl text-white  focus:outline-none focus:border-orange-400/50 focus:bg-white/8 transition-all"
             />
           </div>
 
@@ -105,7 +111,7 @@ export default function Register() {
               onChange={(e) => setEmail(e.target.value)} 
               type="email" 
               placeholder="email@example.com" 
-              className="w-full bg-white/[0.05] border border-white/10 px-4 py-3 rounded-2xl text-white  focus:outline-none focus:border-orange-400/50 focus:bg-white/[0.08] transition-all"
+              className="w-full bg-white/5 border border-white/10 px-4 py-3 rounded-2xl text-white  focus:outline-none focus:border-orange-400/50 focus:bg-white/8 transition-all"
             />
           </div>
 
@@ -115,7 +121,7 @@ export default function Register() {
               onChange={(e) => setPassword(e.target.value)} 
               type="password" 
               placeholder="••••••••" 
-              className="w-full bg-white/[0.05] border border-white/10 px-4 py-3 rounded-2xl text-white  focus:outline-none focus:border-orange-400/50 focus:bg-white/[0.08] transition-all"
+              className="w-full bg-white/5 border border-white/10 px-4 py-3 rounded-2xl text-white  focus:outline-none focus:border-orange-400/50 focus:bg-white/8 transition-all"
             />
           </div>
 

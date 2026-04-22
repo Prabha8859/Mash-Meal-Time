@@ -6,20 +6,21 @@ import User from '@/models/Users';
 export async function POST(req) {
   try {
     const { name, email, password } = await req.json();
+    const normalizedEmail = String(email || '').trim().toLowerCase();
 
-    if (!name || !email || !password) {
+    if (!name || !normalizedEmail || !password) {
       return NextResponse.json({ message: 'All fields are required.' }, { status: 400 });
     }
 
     await connectDB();
 
-    const userExists = await User.findOne({ email }).select('_id');
+    const userExists = await User.findOne({ email: normalizedEmail }).select('_id');
     if (userExists) {
       return NextResponse.json({ message: 'User already exists.' }, { status: 409 });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await User.create({ name, email, password: hashedPassword });
+    const newUser = await User.create({ name, email: normalizedEmail, password: hashedPassword });
 
     // We don't want to send the password hash to the client.
     // The user object will have default values from the schema, like `profileComplete: false`.

@@ -22,7 +22,21 @@ export function getAutoWeatherCondition(month = new Date().getMonth()) {
   return "all-season";
 }
 
-
+/**
+ * Checks if a food item is safe for the user based on their allergies.
+ * @param {Object} food - The food object containing restrictedIngredients array.
+ * @param {Array} userAllergies - Array of strings (e.g., ["nuts", "dairy"]).
+ * @returns {boolean} - True if the food avoids all ingredients the user is allergic to.
+ */
+export function isFoodSafeForUser(food, userAllergies = []) {
+  if (!userAllergies || userAllergies.length === 0) return true;
+  
+  // The food is safe if EVERY allergy the user has is listed 
+  // in the food's "restrictedIngredients" (meaning the food avoids them).
+  return userAllergies.every(allergy => 
+    food.restrictedIngredients?.includes(allergy)
+  );
+}
 
 export const MEAL_SPECIFIC_INGREDIENTS = {
   breakfast: [
@@ -31,6 +45,7 @@ export const MEAL_SPECIFIC_INGREDIENTS = {
     { id: "eggs",       label: "Eggs" },
     { id: "dosa",       label: "Dosa" },
     { id: "idli",       label: "Idli" },
+    { id: "onion",      label: "Onion" },
   ],
   lunch: [
     { id: "dal",        label: "Dal" },

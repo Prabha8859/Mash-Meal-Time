@@ -8,12 +8,12 @@ export default function StatusBar({ foods, error, spinning, loading, selectedMod
       text: "text-orange-700 dark:text-orange-300",
       label: "Finding options…",
     };
-    if (foods.length > 0) return { // Success state: foods available
-      bg: "bg-green-100/70 dark:bg-green-500/[0.15]", border: "border-green-300/70 dark:border-green-400/35",
-      dot: "bg-green-500 dark:bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.9)]",
-      text: "text-green-700 dark:text-green-300",
-      label: `${remainingCount} options ready`,
-    };
+    // if (foods.length > 0) return { // Success state: foods available
+    //   bg: "bg-green-100/70 dark:bg-green-500/[0.15]", border: "border-green-300/70 dark:border-green-400/35",
+    //   dot: "bg-green-500 dark:bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.9)]",
+    //   text: "text-green-700 dark:text-green-300",
+    //   label: `${remainingCount} options ready`,
+    // };
     if (error) return { // Error state
       bg: "bg-red-100/70 dark:bg-red-500/[0.15]", border: "border-red-300/70 dark:border-red-300/30",
       dot: "bg-red-500 dark:bg-red-400 shadow-[0_0_6px_rgba(239,68,68,0.9)]",

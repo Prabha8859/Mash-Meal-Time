@@ -16,6 +16,7 @@ export default function FoodSpin({
   isFiltered,
   mealTiming,
   baseParams,
+  activeQueryString,
 }) {
   const [foods, setFoods] = useState(initialFoods || []);
   const [loading, setLoading] = useState(false);
@@ -27,7 +28,7 @@ export default function FoodSpin({
   const [spinning, setSpinning] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [rejectedIds, setRejectedIds] = useState(new Set());
-  const [currentQueryString, setCurrentQueryString] = useState(baseParams);
+  const [currentQueryString, setCurrentQueryString] = useState(activeQueryString || baseParams);
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [filterExpiry, setFilterExpiry] = useState(null);
   const [timeLeft, setTimeLeft] = useState(null);
@@ -35,11 +36,12 @@ export default function FoodSpin({
 
   const wheelRef = useRef(null);
   const abortControllerRef = useRef(null);
+  const spinTimeoutRef = useRef(null);
 
   // Dynamically derive the meal timing from the current filters
-  const activeParams = new URLSearchParams(currentQueryString);
+  const currentParams = new URLSearchParams(currentQueryString);
   const activeMealTiming =
-    activeParams.get("mealTiming")?.toLowerCase() || mealTiming?.toLowerCase();
+    currentParams.get("mealTiming")?.toLowerCase() || mealTiming?.toLowerCase();
   const COMMON_INGREDIENTS = MEAL_SPECIFIC_INGREDIENTS[activeMealTiming] || [];
   const remainingCount = Math.max(0, foods.length - rejectedIds.size);
 
@@ -50,6 +52,10 @@ export default function FoodSpin({
     setFoods([]);
     setRejectedIds(new Set());
     setError(null);
+    if (spinTimeoutRef.current) {
+      clearTimeout(spinTimeoutRef.current);
+      spinTimeoutRef.current = null;
+    }
     if (wheelRef.current) {
       wheelRef.current.style.transition = "none";
       wheelRef.current.style.transform = "rotate(0deg)";
@@ -82,6 +88,55 @@ export default function FoodSpin({
   }, [initialFoods, isFiltered]);
 
   useEffect(() => {
+    const expiryCookie = document.cookie
+      .split("; ")
+      .find((cookie) => cookie.startsWith("temp_filters_expires="));
+
+    if (!expiryCookie) return;
+
+    const expiryTime = Number(expiryCookie.split("=")[1]);
+    if (!expiryTime || expiryTime <= Date.now()) {
+      document.cookie = "temp_filters=; path=/; max-age=0";
+      document.cookie = "temp_filters_expires=; path=/; max-age=0";
+      return;
+    }
+
+    setFilterExpiry(expiryTime);
+    setTimeLeft(Math.ceil((expiryTime - Date.now()) / 1000));
+  }, []);
+
+  useEffect(() => {
+    if (activeQueryString !== undefined && activeQueryString !== null) {
+      setCurrentQueryString(activeQueryString || baseParams);
+    }
+  }, [activeQueryString, baseParams]);
+
+  useEffect(() => {
+    if (selectedMode) {
+      const selectedIngredients =
+        selectedMode === "self-cooking"
+          ? Object.keys(checkedIngredients).filter((k) => checkedIngredients[k])
+          : [];
+      fetchFoodsForMode(selectedMode, selectedIngredients);
+    }
+  }, [currentQueryString, selectedMode, checkedIngredients]);
+   // Stop spinning if mode changes during spin
+  useEffect(() => {
+    if (spinning) {
+      setSpinning(false);
+      setShowResult(false);
+      if (spinTimeoutRef.current) {
+        clearTimeout(spinTimeoutRef.current);
+        spinTimeoutRef.current = null;
+      }
+      if (wheelRef.current) {
+        wheelRef.current.style.transition = "none";
+        wheelRef.current.style.transform = "rotate(0deg)";
+      }
+    }
+  }, [selectedMode]);
+
+  useEffect(() => {
     if (foods?.length > 0) {
       if (!suggestedFood) setSuggestedFood(getNewSuggestion(foods));
       setShowResult(false);
@@ -98,6 +153,7 @@ export default function FoodSpin({
         setTimeLeft(null);
         setCurrentQueryString(baseParams);
         document.cookie = "temp_filters=; path=/; max-age=0";
+        document.cookie = "temp_filters_expires=; path=/; max-age=0";
         setFoods([]);
         setSuggestedFood(null);
         setShowResult(false);
@@ -124,15 +180,20 @@ export default function FoodSpin({
     if (params.get("restrictedIngredients") === "no-allergies")
       params.delete("restrictedIngredients");
     params.set("foodType", mode);
+    // Ensure images are fetched when mode or ingredients change
+    params.set("fullImage", "true");
     if (ingredients.length > 0)
       params.set("ingredients", ingredients.join(","));
 
     try {
-      const res = await fetch(`/api/foods?${params.toString()}`, {
+      const queryString = params.toString();
+      console.log("[FoodSpin] Fetching /api/foods?" + queryString);
+      const res = await fetch(`/api/foods?${queryString}`, {
         signal: abortControllerRef.current.signal,
       });
       if (!res.ok) throw new Error(`Failed to fetch food: ${res.statusText}`);
       const data = await res.json();
+      console.log("[FoodSpin] fetched", data.length, "foods");
       if (data.length === 0) {
         setError("No food found. Try changing filters.");
         setFoods([]);
@@ -141,7 +202,10 @@ export default function FoodSpin({
       setFoods(data);
       return data;
     } catch (err) {
-      if (err.name !== "AbortError") setError(err.message);
+      if (err.name === "AbortError") {
+        return [];
+      }
+      setError(err.message);
       setFoods([]);
       return [];
     } finally {
@@ -185,7 +249,7 @@ export default function FoodSpin({
   };
 
   const handleFilterApply = (newParams, expiryTime) => {
-    setCurrentQueryString(newParams);
+    setCurrentQueryString(newParams || baseParams);
     setFiltersVisible(false);
     setFoods([]);
     setRejectedIds(new Set());
@@ -195,6 +259,9 @@ export default function FoodSpin({
     if (expiryTime) {
       setFilterExpiry(expiryTime);
       setTimeLeft(Math.ceil((expiryTime - Date.now()) / 1000));
+    } else {
+      setFilterExpiry(null);
+      setTimeLeft(null);
     }
   };
 
@@ -224,6 +291,7 @@ export default function FoodSpin({
     setRejectedIds(new Set());
     setIngredientsVisible(false);
     document.cookie = "temp_filters=; path=/; max-age=0";
+    document.cookie = "temp_filters_expires=; path=/; max-age=0";
     setFoods([]);
     setSuggestedFood(null);
     setShowResult(false);
@@ -259,7 +327,7 @@ export default function FoodSpin({
         "transform 4.5s cubic-bezier(0.25,0.1,0.25,1)";
       wheelRef.current.style.transform = `rotate(${totalRotation}deg)`;
     }
-    setTimeout(() => {
+    spinTimeoutRef.current = setTimeout(() => {
       setSpinning(false);
       setShowResult(true);
       setTimeout(() => {
@@ -331,7 +399,7 @@ export default function FoodSpin({
           />
 
           {/* glass divider */}
-          <div className="w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent mb-3" />
+          <div className="w-full h-px bg-linear-to-r from-transparent via-white/20 to-transparent mb-3" />
 
           {/* ── Mode selector ── */}
           <ModeRow

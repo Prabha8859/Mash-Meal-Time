@@ -10,6 +10,7 @@ export const DIET_OPTIONS = [
 export const ALLERGY_OPTIONS = [
   { value: "nuts", label: "Nuts" }, { value: "dairy", label: "Dairy" }, { value: "eggs", label: "Eggs" },
   { value: "soy", label: "Soy" }, { value: "shellfish", label: "Shellfish" }, { value: "gluten", label: "Gluten" },
+  {value: "onion", label: "Onion"}
 ];
 
 export const GOAL_OPTIONS = [

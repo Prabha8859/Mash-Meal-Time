@@ -117,5 +117,16 @@ const FoodSchema = new mongoose.Schema(
 { timestamps: true }
 );
 
+// Add Indexes to speed up queries (especially for the Home page filters)
+FoodSchema.index({ dietType: 1 });
+FoodSchema.index({ healthGoals: 1 });
+FoodSchema.index({ cuisine: 1 });
+FoodSchema.index({ mealTiming: 1 });
+FoodSchema.index({ weather: 1 });
+FoodSchema.index({ foodType: 1 });
+FoodSchema.index({ ingredients: 1 });
+// Compound index for common filter combinations
+FoodSchema.index({ dietType: 1, mealTiming: 1, foodType: 1 });
+
 export default mongoose.models.Food ||
 mongoose.model("Food", FoodSchema);
