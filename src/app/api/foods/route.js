@@ -92,20 +92,6 @@ export async function GET(req) {
   try {
     await connectDB();
 
-    // Ensure indexes exist for better performance
-    try {
-      await FoodModel.collection.createIndex({ dietType: 1 });
-      await FoodModel.collection.createIndex({ healthGoals: 1 });
-      await FoodModel.collection.createIndex({ cuisine: 1 });
-      await FoodModel.collection.createIndex({ mealTiming: 1 });
-      await FoodModel.collection.createIndex({ weather: 1 });
-      await FoodModel.collection.createIndex({ ingredients: 1 });
-      await FoodModel.collection.createIndex({ foodType: 1 });
-      console.log("Index creation attempted");
-    } catch (indexError) {
-      console.log("Index creation skipped or failed:", indexError.message);
-    }
-
     const { searchParams } = req.nextUrl;
     const query = {};
 
@@ -178,7 +164,6 @@ export async function GET(req) {
 
      const projection = {
       name: 1,
-      image: 1, // Always include image
       description: 1,
       category: 1,
       dietType: 1,
@@ -190,6 +175,7 @@ export async function GET(req) {
 
     // Add extra fields if requested
     if (searchParams.get('details') === 'true' || searchParams.get('fullImage') === 'true') {
+      projection.image = 1; // Only include the heavy image field when explicitly requested
       projection.ingredients = 1;
       projection.mood = 1;
       projection.weather = 1;

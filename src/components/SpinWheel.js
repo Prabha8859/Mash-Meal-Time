@@ -1,5 +1,6 @@
 "use client";
 import React, { forwardRef, useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 
 const SpinWheel = forwardRef(({ 
   showResult, 
@@ -7,9 +8,12 @@ const SpinWheel = forwardRef(({
   selectedMode, 
   spinning, 
   onSpin, 
+  pulseModes,
+  onCenterClick,
   loading, 
   disabled 
 }, ref) => {
+  const router = useRouter();
   const [quickTip, setQuickTip] = useState("");
   const [typedText, setTypedText] = useState(""); // State for typewriter text
   const [showCursor, setShowCursor] = useState(true); // State for cursor visibility
@@ -143,6 +147,16 @@ const SpinWheel = forwardRef(({
         .animate-select-mode {
           animation: selectModeFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+        @keyframes labelShake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-4px); }
+          75% { transform: translateX(4px); }
+        }
+        .pulse-label-active {
+          animation: labelShake 0.2s ease-in-out infinite;
+          border-color: #f97316 !important;
+          background: rgba(249, 115, 22, 0.3) !important;
+        }
 
         .typewriter-cursor {
           animation: blink-caret 0.75s step-end infinite;
@@ -164,7 +178,7 @@ const SpinWheel = forwardRef(({
       `}</style>
 
       <div 
-      className="relative flex items-center justify-center w-full max-w-[280px] sm:max-w-[360px] md:max-w-[395px] aspect-square flex-shrink-0 mx-auto transition-all duration-300"
+      className="relative flex items-center justify-center w-full max-w-[240px] min-[380px]:max-w-[280px] sm:max-w-[360px] md:max-w-[395px] aspect-square flex-shrink-0 mx-auto transition-all duration-300"
     >
       {/* Dynamic Background Aura Glow */}
       {selectedMode && !showResult && (
@@ -260,10 +274,14 @@ const SpinWheel = forwardRef(({
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-20">
                   {!selectedMode ? (
                     /* No Mode State */
-                    <div className="flex flex-col items-center gap-4">
+                    <div 
+                      className="flex flex-col items-center gap-4 cursor-pointer hover:scale-105 transition-transform"
+                      onClick={onCenterClick} 
+                      title="Click to start"
+                    >
                       <p style={{
                         fontFamily: "'Syne', sans-serif",
-                        fontSize: 'clamp(18px, 5vw, 24px)',
+                        fontSize: 'clamp(15px, 4.5vw, 24px)',
                         fontWeight: 900,
                         lineHeight: 1.1,
                         minHeight: '2.2em', // Prevents layout jump while typing
@@ -276,7 +294,7 @@ const SpinWheel = forwardRef(({
                       </p>
                       <div className={`
                         px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20
-                        ${isTypingDone ? 'animate-select-mode' : 'opacity-0'}
+                        ${isTypingDone ? 'animate-select-mode' : 'opacity-0'} ${pulseModes ? 'pulse-label-active' : ''}
                       `}>
                         <p className="text-[10px] text-white/80 font-bold uppercase tracking-widest">Select Mode</p>
                       </div>

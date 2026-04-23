@@ -28,7 +28,7 @@ async function getFoods(queryString = "") {
     if (queryString) url.search = queryString;
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 seconds timeout - API should be fast now 
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // Increased timeout to 30s to prevent AbortError
 
     const res = await fetch(url.toString(), { cache: "no-store", signal: controller.signal });
     clearTimeout(timeoutId);
@@ -46,22 +46,16 @@ async function getFoods(queryString = "") {
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
-  if (!session || !session.user) redirect("/register");
-
-  const user = session.user;
+  const user = session?.user;
   const userQuestionnaire = user?.questionnaire || [];
   const hasPreferenceData = userQuestionnaire.some(
     (pref) => pref.questionId !== 'preferenceSkipped' && Array.isArray(pref.answer) && pref.answer.length > 0,
   );
 
-  if (!userQuestionnaire || userQuestionnaire.length === 0) {
-    redirect("/preferences");
-  }
-
   const cookieStore = await cookies();
   const tempFilters = cookieStore.get("temp_filters");
 
-  const userAllergies = (user.questionnaire || [])
+  const userAllergies = (user?.questionnaire || [])
     .find((item) => item.questionId === "allergies")
     ?.answer || [];
 
@@ -72,7 +66,7 @@ export default async function Home() {
     weightGoal: "healthGoals",
   };
 
-  if (user.questionnaire) {
+  if (user?.questionnaire) {
     user.questionnaire.forEach((pref) => {
       if (pref.questionId === "preferenceSkipped") return;
 
@@ -112,6 +106,11 @@ export default async function Home() {
     });
   }
 
+  // Redirect logged-in users to preferences if they haven't filled them out
+  if (user && (!userQuestionnaire || userQuestionnaire.length === 0)) {
+    redirect("/preferences");
+  }
+
   if (!defaultParams.has("mealTiming"))
     defaultParams.set("mealTiming", getAutoMealTiming());
 
@@ -140,7 +139,7 @@ export default async function Home() {
   const mealTimingForComponent =
     finalParams.get("mealTiming")?.split(",")[0] || "Lunch";
   const baseParams = defaultQueryString;
-  const needsPreferences = !hasPreferenceData;
+  const needsPreferences = user && !hasPreferenceData;
 
   return (
     <div className="h-screen w-screen overflow-hidden relative bg-[var(--bg-color)] transition-colors duration-500">
@@ -169,10 +168,10 @@ export default async function Home() {
           speed={0.2}
           squareSize={40}
           direction="diagonal"
-          borderColor="rgba(0, 242, 255, 0.15)"
-          hoverFillColor="rgba(0, 242, 255, 0.3)"
+          borderColor="rgba(150, 150, 150, 0.15)"
+          hoverFillColor="rgba(16, 185, 129, 0.3)"
           shape="square"
-          hoverTrailAmount={2}
+          hoverTrailAmount={10}
         />
       </div>
 
@@ -200,14 +199,16 @@ export default async function Home() {
       <PreferenceReminder visible={needsPreferences} />
 
       {/* ── LAYER 5: FoodSpin (center, above lines) ── */}
-      <div className="absolute inset-0 flex items-center justify-center z-10">
-        <FoodSpin
-          initialFoods={foods}
-          isFiltered={queryString.length > 0}
-          mealTiming={mealTimingForComponent}
-          baseParams={baseParams}
-          activeQueryString={queryString}
-        />
+      <div className="absolute inset-0 flex items-start sm:items-center justify-center z-10 pointer-events-none overflow-y-auto pt-20 pb-10 sm:p-0">
+        <div className="pointer-events-auto w-full flex justify-center h-fit">
+          <FoodSpin
+            initialFoods={foods}
+            isFiltered={queryString.length > 0}
+            mealTiming={mealTimingForComponent}
+            baseParams={baseParams}
+            activeQueryString={queryString}
+          />
+        </div>
       </div>
 
     </div>

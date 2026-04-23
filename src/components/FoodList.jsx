@@ -14,7 +14,7 @@ export default function FoodList({ initialFoods, isFiltered }) {
     async function fetchFoods() {
       try {
         setLoading(true);
-        const res = await fetch('/api/foods'); // No need to log status here
+        const res = await fetch('/api/foods?fullImage=true'); // Request images for the list view specifically
         if (!res.ok) {
           throw new Error('Failed to fetch foods');
         }

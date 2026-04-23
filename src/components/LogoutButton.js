@@ -8,20 +8,15 @@ import Link from "next/link";
 
 export default function LogoutButton() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [timeLeft, setTimeLeft] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = () => {
-    // Clear the user cookie by setting its expiry date to the past
     document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     document.cookie = "temp_filters=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    localStorage.removeItem("user");
-    localStorage.removeItem("loginTime");
-    // Redirect to the login page and refresh to clear server-side cache
-    window.location.href = "/login";
     localStorage.clear();
-    signOut({ callbackUrl: "/login" });
+    signOut({ callbackUrl: "/" }); // Redirect to home so they see the Login button on the main page
   };
 
   useEffect(() => {
@@ -71,6 +66,21 @@ export default function LogoutButton() {
     const seconds = Math.floor((ms % 60000) / 1000);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
+
+  // If the user is not logged in, show a Login button instead of the avatar
+  if (status === "unauthenticated") {
+    return (
+      <Link 
+        href="/login" 
+        className="px-6 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-orange-500/20"
+      >
+        Login
+      </Link>
+    );
+  }
+
+  // While checking session, show a small loader or nothing
+  if (status === "loading") return <div className="w-10 h-10 rounded-full bg-white/5 animate-pulse" />;
 
   return (
     <div className="relative">
