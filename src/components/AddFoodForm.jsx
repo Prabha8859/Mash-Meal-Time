@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Input from "./commen/Input";
 import Button from "./commen/Button";
 import { MEAL_SPECIFIC_INGREDIENTS } from "@/lib/utils";
@@ -18,10 +18,9 @@ import {
 
 const SPICE_LEVEL_OPTIONS = ["mild", "medium", "spicy", "extra-spicy"];
 
-export default function AddFoodForm({ onAdded }) {
-  const searchParams = useSearchParams();
-  const editId = searchParams.get('edit');
+export default function AddFoodForm({ editId, onAdded }) {
   const isEditing = !!editId;
+  const router = useRouter();
 
   const [form, setForm] = useState({
     name: "",
@@ -290,6 +289,7 @@ export default function AddFoodForm({ onAdded }) {
       }
 
       if (onAdded) onAdded(updatedFood);
+      router.push("/"); // Navigate back after success
     } catch (err) {
       setError(err.message);
     } finally {

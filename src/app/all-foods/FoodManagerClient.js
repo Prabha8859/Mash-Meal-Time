@@ -39,65 +39,93 @@ export default function FoodManagerClient({ initialFoods, totalPages, currentPag
       </div>
 
       {foods.length === 0 ? (
-        <p className="text-center text-[var(--text-muted)]">No food items found.</p>
+        <p className="text-center text-[var(--text-muted)] py-20">No food items found.</p>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="flex flex-col gap-4">
             {foods.map((food) => (
-              <div key={food._id} className="glass-card p-5 rounded-3xl border border-white/10 bg-white/5 shadow-xl relative group">
-                {/* Action Icons */}
-                <div className="absolute top-4 left-4 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button 
-                    onClick={() => router.push(`/add-food?edit=${food._id}`)}
-                    className="p-2 bg-blue-500 rounded-full text-white hover:bg-blue-600 shadow-lg"
-                    title="Edit"
-                  >
-                    ✏️
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(food._id)}
-                    className="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 shadow-lg"
-                    title="Delete Permanently"
-                  >
-                    🗑️
-                  </button>
-                </div>
-
-                <div className="relative overflow-hidden rounded-3xl mb-4 h-56 bg-slate-900">
+              <div key={food._id} className="glass-card p-4 sm:p-5 rounded-[2rem] border border-white/10 bg-white/5 flex flex-col sm:flex-row gap-6 items-center group transition-all hover:bg-white/[0.08]">
+                
+                {/* Food Image */}
+                <div className="relative overflow-hidden rounded-2xl w-full sm:w-40 h-40 flex-shrink-0 bg-slate-900">
                   <img 
                     src={food.image || "https://placehold.co/600x400?text=No+Image"} 
                     alt={food.name} 
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                    className="w-full h-full object-cover" 
                   />
                 </div>
                 
-                <div className="flex justify-between items-start mb-2">
-                  <h2 className="text-xl font-black text-white">{food.name}</h2>
-                  {food.price && <span className="text-green-400 font-bold">₹{food.price}</span>}
+                {/* Main Data Section */}
+                <div className="flex-grow w-full">
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-2 mb-3">
+                    <div>
+                      <h2 className="text-2xl font-black text-white tracking-tight">{food.name}</h2>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-green-500 font-black mt-1">
+                        {food.category || "General"}
+                      </p>
+                    </div>
+                    {food.price && (
+                      <span className="text-xl font-black text-green-400 bg-green-400/10 px-4 py-1 rounded-full border border-green-400/20">
+                        ₹{food.price}
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-sm text-[var(--text-muted)] mb-4 line-clamp-2 leading-relaxed max-w-2xl">
+                    {food.description}
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    {/* Diet Type Display */}
+                    <div className="flex gap-2">
+                      {food.dietType?.map((diet) => (
+                        <span key={diet} className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
+                          diet.toLowerCase().includes('veg') && !diet.toLowerCase().includes('non') 
+                            ? 'bg-green-500/10 text-green-400 border-green-500/20' 
+                            : 'bg-red-500/10 text-red-400 border-red-500/20'
+                        }`}>
+                          🌱 {diet}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="h-4 w-px bg-white/10 hidden sm:block" />
+
+                    {/* Cuisine Tags */}
+                    <div className="flex flex-wrap gap-2">
+                      {food.cuisine?.slice(0, 3).map(c => (
+                        <span key={c} className="rounded-full bg-white/5 border border-white/10 px-3 py-1 text-[9px] text-white/50 uppercase font-bold">{c}</span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
-                <p className="text-xs uppercase tracking-widest text-green-500 font-black mb-2">
-                  {food.category || "General"}
-                </p>
-                
-                <p className="text-sm text-[var(--text-muted)] mb-4 line-clamp-2 leading-relaxed">
-                  {food.description}
-                </p>
+                {/* Action Buttons & FoodType */}
+                <div className="flex flex-col justify-between items-end gap-4 w-full sm:w-auto sm:min-w-[150px] border-t sm:border-t-0 sm:border-l border-white/10 pt-4 sm:pt-0 sm:pl-6">
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <button 
+                      onClick={() => router.push(`/add-food?edit=${food._id}`)}
+                      className="flex-1 sm:flex-none py-2 px-4 bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white rounded-xl border border-blue-500/20 transition-all font-bold text-xs"
+                    >
+                      EDIT
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(food._id)}
+                      className="flex-1 sm:flex-none py-2 px-4 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white rounded-xl border border-red-500/20 transition-all font-bold text-xs"
+                    >
+                      DELETE
+                    </button>
+                  </div>
 
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {food.cuisine?.slice(0, 3).map(c => (
-                    <span key={c} className="rounded-full bg-white/5 border border-white/10 px-3 py-1 text-[10px] text-white/70 uppercase font-bold">{c}</span>
-                  ))}
-                </div>
-
-                <div className="pt-4 border-t border-white/10 flex flex-wrap gap-2">
-                  {food.foodType?.map((type) => (
-                    <span key={type} className={`text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest border ${
+                  <div className="flex flex-wrap gap-2 justify-end">
+                    {food.foodType?.map((type) => (
+                      <span key={type} className={`text-[9px] font-black px-3 py-1 rounded-lg uppercase tracking-widest border ${
                       type === 'online' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : 'bg-orange-500/20 text-orange-400 border-orange-500/30'
                     }`}>
                       {type === 'online' ? 'Online Order' : ' Self Cooking'}
                     </span>
                   ))}
+                  </div>
                 </div>
               </div>
             ))}
