@@ -1,8 +1,8 @@
 import AddFoodForm from "../../components/AddFoodForm";
 import Link from "next/link";
 
-export default function AddFoodPage({ searchParams }) {
-  const editId = searchParams?.edit || null;
+export default async function AddFoodPage({ searchParams }) {
+  const editId = (await searchParams)?.edit || null;
 
   return (
     <div className="p-10 max-w-lg mx-auto">

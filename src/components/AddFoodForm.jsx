@@ -263,7 +263,7 @@ export default function AddFoodForm({ editId, onAdded }) {
       if (!isEditing) {
         // Reset form only when adding new food
         setForm({
-          name: "",
+          name: "", // Reset form fields
           image: null,
           imageUrl: "",
           useUrl: false,
